@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>체중 관리 서비스</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+        .motivation { text-align: center; font-weight: bold; color: #e74c3c; margin-bottom: 20px; font-size: 1.1em; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
+        input[type="number"], input[type="date"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        button { padding: 10px 15px; border: none; border-radius: 6px; background: #3498db; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #2980b9; }
+        .chart-container { margin-top: 30px; position: relative; height: 250px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 10px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day-name { font-weight: bold; color: #7f8c8d; font-size: 0.9em; padding-bottom: 5px; }
+        .day-cell { border: 1px solid #eee; border-radius: 6px; padding: 10px 5px; min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafafa; }
+        .day-cell.today { border-color: #3498db; background: #eef7fc; }
+        .weight-badge { margin-top: 5px; background: #2ecc71; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📉 체중 기록 & 관리</h1>
+    <div id="motivationMsg" class="motivation">목표 체중을 설정해주세요!</div>
+
+    <div class="input-group">
+        <input type="number" id="targetWeight" placeholder="목표 체중 (kg)" step="0.1">
+        <button onclick="saveTarget()">목표 저장</button>
+    </div>
+
+    <div class="input-group">
+        <input type="date" id="recordDate">
+        <input type="number" id="currentWeight" placeholder="오늘의 체중 (kg)" step="0.1">
+        <button onclick="saveWeight()">기록하기</button>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="weightChart"></canvas>
+    </div>
+
+    <div class="calendar-header">
+        <button onclick="changeMonth(-1)">◀</button>
+        <h3 id="calendarMonth" style="margin: 0;">2026년 9월</h3>
+        <button onclick="changeMonth(1)">▶</button>
+    </div>
+    
+    <div class="calendar-grid" id="calendarGrid">
+        <!-- 달력 렌더링 영역 -->
+    </div>
+</div>
+
+<script>
+    let weights = JSON.parse(localStorage.getItem('weights')) || {};
+    let target = localStorage.getItem('targetWeight') || null;
+    let chartInstance = null;
+    let currentDisplayDate = new Date();
+
+    document.getElementById('recordDate').valueAsDate = new Date();
+    if (target) document.getElementById('targetWeight').value = target;
+
+    function saveTarget() {
+        const val = document.getElementById('targetWeight').value;
+        if (!val) return alert("목표 체중을 입력하세요.");
+        localStorage.setItem('targetWeight', val);
+        target = val;
+        updateUI();
+    }
+
+    function saveWeight() {
+        const date = document.getElementById('recordDate').value;
+        const weight = document.getElementById('currentWeight').value;
+        if (!date || !weight) return alert("날짜와 체중을 모두 입력하세요.");
+        
+        weights[date] = parseFloat(weight);
+        localStorage.setItem('weights', JSON.stringify(weights));
+        updateUI();
+    }
+
+    function updateUI() {
+        updateMotivation();
+        renderChart();
+        renderCalendar();
+    }
+
+    function updateMotivation() {
+        const msgEl = document.getElementById('motivationMsg');
+        if (!target || Object.keys(weights).length === 0) {
+            msgEl.innerText = "꾸준한 기록이 감량의 시작입니다!";
+            return;
+        }
+
+        const sortedDates = Object.keys(weights).sort();
+        const latestWeight = weights[sortedDates[sortedDates.length - 1]];
+        const diff = (latestWeight - target).toFixed(1);
+
+        if (diff <= 0) {
+            msgEl.innerText = `🎉 목표 달성! 현재 ${latestWeight}kg. 유지에 집중하세요!`;
+            msgEl.style.color = '#27ae60';
+        } else if (diff <= 2) {
+            msgEl.innerText = `🔥 고지가 눈앞입니다! 목표까지 단 ${diff}kg 남았어요!`;
+            msgEl.style.color = '#e67e22';
+        } else {
+            msgEl.innerText = `💪 목표까지 ${diff}kg 남았습니다. 오늘도 파이팅!`;
+            msgEl.style.color = '#e74c3c';
+        }
+    }
+
+    function renderChart() {
+        const sortedDates = Object.keys(weights).sort().slice(-14); // 최근 14일
+        const dataPoints = sortedDates.map(date => weights[date]);
+
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: sortedDates.map(d => d.slice(5)), // MM-DD 포맷
+                datasets: [{
+                    label: '체중 (kg)',
+                    data: dataPoints,
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#2980b9'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function changeMonth(offset) {
+        currentDisplayDate.setMonth(currentDisplayDate.getMonth() + offset);
+        renderCalendar();
+    }
+
+    function renderCalendar() {
+        const year = currentDisplayDate.getFullYear();
+        const month = currentDisplayDate.getMonth();
+        document.getElementById('calendarMonth').innerText = `${year}년 ${month + 1}월`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        dayNames.forEach(day => {
+            grid.innerHTML += `<div class="day-name">${day}</div>`;
+        });
+
+        // 빈 칸 채우기
+        for (let i = 0; i < firstDay; i++) {
+            grid.innerHTML += `<div class="day-cell" style="background:transparent; border:none;"></div>`;
+        }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // 날짜 채우기
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isToday = dateStr === todayStr ? 'today' : '';
+            const weightData = weights[dateStr] ? `<div class="weight-badge">${weights[dateStr]}kg</div>` : '';
+
+            grid.innerHTML += `
+                <div class="day-cell ${isToday}" onclick="document.getElementById('recordDate').value='${dateStr}'" style="cursor:pointer;">
+                    <span style="font-size: 0.9em; color: #555;">${day}</span>
+                    ${weightData}
+                </div>
+            `;
+        }
+    }
+
+    // 초기 실행
+    updateUI();
+</script>
+</body>
+</html>
