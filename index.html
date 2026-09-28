@@ -155,13 +155,128 @@
     .stat .v{font-size:16px} .progress-pct{font-size:32px}
     .day .w{font-size:11px} .day{min-height:54px}
   }
+
+  /* ===== 하단 탭 ===== */
+  body{padding-bottom:96px}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom))}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;
+          padding-bottom:env(safe-area-inset-bottom);z-index:40}
+  .tabbar button{flex:1;border:none;background:none;padding:8px 0 9px;font-size:11.5px;color:var(--sub);font-weight:700;
+                 display:flex;flex-direction:column;align-items:center;gap:2px}
+  .tabbar button .i{font-size:21px;filter:grayscale(1);opacity:.6}
+  .tabbar button.active{color:var(--primary)}
+  .tabbar button.active .i{filter:none;opacity:1}
+
+  /* ===== 운동 기록 ===== */
+  .stats.s4{grid-template-columns:repeat(4,1fr);gap:8px;margin-top:0}
+  .stats.s4 .stat{padding:10px 4px}
+  .stats.s4 .v{font-size:17px}
+  .rec{background:linear-gradient(135deg,#0f9f6e,#34c38f);color:#fff;border-radius:14px;padding:14px 16px}
+  .rec .t{font-size:12.5px;opacity:.92;font-weight:600}
+  .rec .p{font-size:22px;font-weight:800;margin-top:2px;letter-spacing:-.4px}
+  .rec .s{font-size:12.5px;opacity:.92;margin-top:4px}
+  .part-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+  .part{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;text-align:left;color:var(--text)}
+  .part b{display:block;font-size:15px}
+  .part span{font-size:12px;color:var(--sub)}
+  .part .star{float:right;font-size:11px;color:var(--primary);font-weight:800}
+  .part.sel{border-color:var(--primary);background:var(--primary-soft)}
+  .pv{list-style:none;margin:0 0 12px}
+  .pv li{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13.5px;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .pv li:last-child{border-bottom:none}
+  .pv li .rt{white-space:nowrap;font-weight:700;font-size:13px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px;white-space:nowrap;vertical-align:1px}
+  .k-up{background:#dcf5e8;color:var(--down)} .k-reps{background:#e6effc;color:#2b63c4}
+  .k-hold{background:#eef1ef;color:#5b6660} .k-deload{background:#fdf1dc;color:var(--warn)} .k-new{background:#f3e8fd;color:#7a3fc4}
+  .link-btn{border:none;background:var(--bg);border-radius:8px;font-size:12px;font-weight:700;padding:6px 10px;color:var(--text)}
+
+  .sess-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+  .sess-head .p{font-size:19px;font-weight:800;letter-spacing:-.3px}
+  .sess-head input[type=date]{height:36px;border:1.5px solid var(--line);border-radius:9px;padding:0 8px;font-size:13px;font-family:inherit;background:#fff;color:var(--text)}
+  .elapsed{font-size:12.5px;color:var(--sub);font-weight:600;margin-top:2px}
+  .ex{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;transition:background .2s}
+  .ex.complete{border-color:#a7e3c6;background:#f6fcf9}
+  .ex-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+  .ex-head b{font-size:15px}
+  .ex-x{border:none;background:none;color:#a0a8a3;font-size:20px;line-height:1;padding:0 2px}
+  .ex-last{font-size:12px;color:var(--sub);margin-top:5px}
+  .ex-goal{font-size:12.5px;margin-top:6px;color:#2f3a34;background:var(--bg);border-radius:8px;padding:7px 9px;line-height:1.45}
+  .set-row{display:grid;grid-template-columns:20px 1fr auto 1fr auto 46px;gap:6px;align-items:center;margin-top:8px}
+  .set-row .sn{font-size:12px;color:var(--sub);font-weight:800;text-align:center}
+  .set-row input{height:44px;border:1.5px solid var(--line);border-radius:10px;text-align:center;font-size:17px;font-weight:700;
+                 width:100%;min-width:0;outline:none;background:#fff;color:var(--text)}
+  .set-row input:focus{border-color:var(--primary)}
+  .set-row .u{font-size:12px;color:var(--sub)}
+  .chk{height:44px;border:none;border-radius:10px;background:var(--bg);color:#b3bdb7;font-size:19px;font-weight:800}
+  .set-row.done .chk{background:var(--primary);color:#fff}
+  .set-row.done input{background:#f1faf5;border-color:#c9ecd9}
+  .ex-foot{display:flex;gap:6px;margin-top:9px}
+  .mini{border:none;background:var(--bg);border-radius:8px;font-size:12px;font-weight:700;padding:7px 11px;color:#3a463f}
+  select.add-ex{width:100%;height:46px;border:1.5px dashed #cdd8d2;border-radius:12px;padding:0 10px;font-size:14px;background:#fff;
+                color:var(--sub);font-family:inherit;margin-top:2px}
+
+  .rest{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));width:calc(100% - 32px);
+        max-width:688px;background:#17201b;color:#fff;border-radius:14px;padding:10px 12px;display:none;align-items:center;gap:10px;
+        z-index:45;box-shadow:0 8px 24px rgba(0,0,0,.22)}
+  .rest.show{display:flex}
+  body.on-weight .rest{display:none !important}
+  .rest .lb{font-size:11.5px;opacity:.75;font-weight:600}
+  .rest .tm{font-size:21px;font-weight:800;min-width:54px;font-variant-numeric:tabular-nums}
+  .rest .rb{flex:1;height:6px;background:rgba(255,255,255,.18);border-radius:9px;overflow:hidden}
+  .rest .rb div{height:100%;background:#34d399;transition:width .25s linear}
+  .rest button{border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:7px 9px;font-size:12px;font-weight:700}
+
+  .rate{display:flex;align-items:center;gap:14px}
+  .ring{flex:0 0 76px;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;
+        background:conic-gradient(var(--primary) calc(var(--p) * 1%), var(--line) 0)}
+  .ring span{width:60px;height:60px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:16px}
+  .rate .t{font-size:15px;font-weight:800}
+  .rate .m{font-size:13px;color:#3a463f;line-height:1.5;margin-top:3px}
+  .part-sec{margin-top:18px}
+  .part-sec h4{font-size:12.5px;color:var(--sub);font-weight:800;margin-bottom:2px;display:flex;justify-content:space-between}
+  .exrow{display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);cursor:pointer;gap:10px}
+  .exrow:last-child{border-bottom:none}
+  .exrow .nm{font-size:14px;font-weight:700}
+  .exrow .sub{font-size:12px;color:var(--sub);margin-top:2px}
+  .st{font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
+  .st-up{background:#dcf5e8;color:var(--down)} .st-same{background:#eef1ef;color:#5b6660} .st-down{background:#fde3e3;color:var(--up)}
+  .st-stall{background:#fdf1dc;color:var(--warn)} .st-new{background:#f3e8fd;color:#7a3fc4} .st-none{background:#f5f6f5;color:#a0a8a3}
+  .pr{display:inline-block;font-size:10.5px;font-weight:800;color:#a8690b;background:#fff1cf;border-radius:6px;padding:1px 6px;margin-left:5px;vertical-align:1px}
+
+  .modal{max-height:90vh;overflow-y:auto}
+  .modal .x-close{float:right;border:none;background:var(--bg);width:32px;height:32px;border-radius:9px;font-size:16px;margin-top:-4px}
+  .ptabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}
+  .ptabs button{border:none;background:var(--bg);border-radius:99px;padding:7px 12px;font-size:13px;font-weight:700;white-space:nowrap;color:var(--text)}
+  .ptabs button.active{background:var(--primary);color:#fff}
+  .rt-row{display:flex;align-items:center;gap:5px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .rt-row .nm{flex:1;min-width:0}
+  .rt-row .nm b{font-size:14px;display:block}
+  .rt-row .nm span{font-size:12px;color:var(--sub)}
+  .rt-row button{border:none;background:var(--bg);width:32px;height:32px;border-radius:8px;font-size:13px;color:var(--text)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .field select{width:100%;height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;font-size:16px;background:#fff;font-family:inherit;color:var(--text)}
+  .sum-head{text-align:center;padding:2px 0 14px}
+  .sum-head .e{font-size:46px;line-height:1.1}
+  .sum-head .t{font-size:20px;font-weight:800;margin-top:6px}
+  .sum-head .m{font-size:13.5px;color:#3a463f;margin-top:6px;line-height:1.5}
+  .sum-vol{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13.5px;text-align:center;margin-bottom:6px}
+  .sum-item{padding:10px 0;border-bottom:1px solid var(--line)}
+  .sum-item:last-child{border-bottom:none}
+  .sum-item .nm{font-size:14px;font-weight:700}
+  .sum-item .sub{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.45}
+  .hist{list-style:none;margin-top:8px}
+  .hist li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .hist li:last-child{border-bottom:none}
+  .hist .d{color:var(--sub);white-space:nowrap}
+  .mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header>
-    <h1>⚖️ 체중 관리</h1>
+    <h1 id="pageTitle">⚖️ 체중 관리</h1>
     <div class="head-right">
       <span class="dday" id="dday">D-</span>
       <button class="icon-btn" id="openSettings" aria-label="설정">⚙️</button>
@@ -170,6 +285,7 @@
   <div class="sync" id="sync"><i></i><span>연결 중…</span></div>
   <div class="error-banner" id="errorBanner"></div>
 
+<div id="tab-weight">
   <!-- 진행률 + 요약 -->
   <section class="card">
     <div class="progress-top">
@@ -265,6 +381,39 @@
     <h2>최근 기록</h2>
     <ul class="list" id="recentList"></ul>
   </section>
+</div><!-- /tab-weight -->
+
+<!-- ================= 2번 탭: 운동 기록 ================= -->
+<div id="tab-workout" style="display:none">
+  <section class="card">
+    <div class="stats s4">
+      <div class="stat"><div class="k">이번 주</div><div class="v" id="wsWeek">0<small>회</small></div></div>
+      <div class="stat"><div class="k">연속</div><div class="v" id="wsStreak">0<small>주</small></div></div>
+      <div class="stat"><div class="k">4주 성공률</div><div class="v" id="wsRate">-</div></div>
+      <div class="stat"><div class="k">신기록</div><div class="v" id="wsPr">0<small>개</small></div></div>
+    </div>
+  </section>
+
+  <div id="sessionArea"></div>
+
+  <section class="card" id="startCard">
+    <h2>오늘의 운동</h2>
+    <div class="rec" id="recBox"></div>
+    <div class="part-grid" id="partGrid"></div>
+    <div id="partPreview"></div>
+    <button class="btn" id="startBtn" style="width:100%">운동 시작</button>
+  </section>
+
+  <section class="card">
+    <h2>점진적 과부하 리포트</h2>
+    <div id="report"></div>
+  </section>
+
+  <section class="card">
+    <h2>운동 기록 <button class="link-btn" id="routineBtn">⚙️ 루틴 관리</button></h2>
+    <ul class="list" id="sessionList"></ul>
+  </section>
+</div><!-- /tab-workout -->
 </div>
 
 <!-- 설정 모달 -->
@@ -297,6 +446,96 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- 휴식 타이머 -->
+<div class="rest" id="rest">
+  <div><div class="lb">휴식</div><div class="tm" id="restTm">1:30</div></div>
+  <div class="rb"><div id="restBar"></div></div>
+  <button id="restPlus">+30초</button>
+  <button id="restStop">건너뛰기</button>
+</div>
+
+<!-- 하단 탭 -->
+<nav class="tabbar">
+  <button data-tab="weight" class="active"><span class="i">⚖️</span>체중 관리</button>
+  <button data-tab="workout"><span class="i">🏋️</span>운동 기록</button>
+</nav>
+
+<!-- 루틴 관리 -->
+<div class="modal-bg" id="routineModal">
+  <div class="modal">
+    <button class="x-close" data-close="routineModal">✕</button>
+    <h3>루틴 관리</h3>
+    <div class="ptabs" id="rtTabs"></div>
+    <div id="rtList"></div>
+    <button class="btn gray" id="rtAdd" style="width:100%;margin-top:12px">+ 운동 추가</button>
+    <div class="field" style="margin-top:18px">
+      <label for="restSec">세트 사이 휴식 시간 (초)</label>
+      <input type="text" id="restSec" inputmode="numeric">
+    </div>
+    <button class="btn" id="rtDone" style="width:100%">저장하고 닫기</button>
+  </div>
+</div>
+
+<!-- 운동 추가/수정 -->
+<div class="modal-bg" id="exEditModal">
+  <div class="modal">
+    <h3 id="exEditTitle">운동 추가</h3>
+    <div class="field"><label for="eName">운동 이름</label><input type="text" id="eName" maxlength="30" placeholder="예) 체스트 프레스 머신"></div>
+    <div class="field"><label for="ePart">부위</label>
+      <select id="ePart"></select></div>
+    <div class="grid3">
+      <div class="field"><label for="eSets">세트 수</label><input type="text" id="eSets" inputmode="numeric"></div>
+      <div class="field"><label for="eMin">최소 횟수</label><input type="text" id="eMin" inputmode="numeric"></div>
+      <div class="field"><label for="eMax">최대 횟수</label><input type="text" id="eMax" inputmode="numeric"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="eInc">증량 단위 (kg)</label><input type="text" id="eInc" inputmode="decimal"></div>
+      <div class="field"><label for="eStart">시작 무게 (선택)</label><input type="text" id="eStart" inputmode="decimal" placeholder="첫 기록 때 사용"></div>
+    </div>
+    <div class="hint" style="font-size:12px;color:var(--sub);line-height:1.5">모든 세트에서 <b>최대 횟수</b>를 채우면 다음번에 <b>증량 단위</b>만큼 무게를 올리라고 추천해요. 맨몸 운동은 증량 단위를 0으로 두세요.</div>
+    <div class="btns">
+      <button class="btn ghost" id="eDelete" style="display:none">삭제</button>
+      <button class="btn gray" data-close="exEditModal">취소</button>
+      <button class="btn" id="eSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 운동 완료 요약 -->
+<div class="modal-bg" id="summaryModal">
+  <div class="modal">
+    <div id="summaryBody"></div>
+    <button class="btn" data-close="summaryModal" style="width:100%;margin-top:12px">확인</button>
+  </div>
+</div>
+
+<!-- 지난 운동 상세 -->
+<div class="modal-bg" id="sessModal">
+  <div class="modal">
+    <button class="x-close" data-close="sessModal">✕</button>
+    <div id="sessBody"></div>
+    <div class="btns">
+      <button class="btn ghost" id="sessDelete">삭제</button>
+      <button class="btn gray" id="sessReopen">다시 열어서 수정</button>
+    </div>
+  </div>
+</div>
+
+<!-- 운동별 상세 -->
+<div class="modal-bg" id="exModal">
+  <div class="modal">
+    <button class="x-close" data-close="exModal">✕</button>
+    <h3 id="exTitle">운동</h3>
+    <div class="mstats" id="exStats"></div>
+    <div class="chart-box" style="height:200px"><canvas id="exChart"></canvas></div>
+    <div class="legend">
+      <span><i style="background:#0f9f6e"></i>최고 무게</span>
+      <span><i style="background:repeating-linear-gradient(90deg,#6a8fd6 0 4px,transparent 4px 7px)"></i>추정 1RM</span>
+    </div>
+    <ul class="hist" id="exHist"></ul>
+  </div>
+</div>
 
 <script>
 /* =========================================================
@@ -762,6 +1001,654 @@ $('settingsModal').addEventListener('click',e=>{ if(e.target.id==='settingsModal
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) renderAll(); });
 
 renderAll();
+</script>
+
+<script>
+/* =========================================================
+   10. 탭 전환
+   ========================================================= */
+let currentTab = 'weight';
+function switchTab(t){
+  currentTab = t;
+  $('tab-weight').style.display  = t==='weight'  ? '' : 'none';
+  $('tab-workout').style.display = t==='workout' ? '' : 'none';
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  $('pageTitle').textContent = t==='weight' ? '⚖️ 체중 관리' : '🏋️ 운동 기록';
+  $('dday').style.display = t==='weight' ? '' : 'none';
+  document.body.classList.toggle('on-weight', t==='weight');
+  try{ localStorage.setItem('wm_tab', t); }catch(e){}
+  if(t==='weight' && chart) chart.resize();
+  window.scrollTo(0,0);
+}
+document.querySelector('.tabbar').addEventListener('click', e=>{
+  const b=e.target.closest('button[data-tab]'); if(b) switchTab(b.dataset.tab);
+});
+$('openSettings').onclick = ()=> currentTab==='weight' ? openSettings() : openRoutine();
+
+/* =========================================================
+   11. 운동 기록 — 기본값 / 상태
+   ========================================================= */
+const PARTS = [
+  { id:'chest',     name:'가슴+삼두', emoji:'💪' },
+  { id:'back',      name:'등+이두',   emoji:'🦾' },
+  { id:'legs',      name:'하체',      emoji:'🦵' },
+  { id:'shoulders', name:'어깨',      emoji:'🏋️' },
+];
+// [이름, 세트, 최소 횟수, 최대 횟수, 증량 단위(kg)]
+const DEFAULT_ROUTINE = {
+  chest:     [['체스트 프레스 머신',3,8,12,5], ['인클라인 체스트 프레스 머신',3,8,12,5], ['펙덱 플라이',3,10,15,5],
+              ['케이블 푸시다운',3,10,15,2.5], ['오버헤드 케이블 익스텐션',3,10,15,2.5]],
+  back:      [['랫 풀다운',3,8,12,5], ['시티드 케이블 로우',3,8,12,5], ['원암 덤벨 로우',3,8,12,2],
+              ['바벨 컬',3,8,12,2.5], ['해머 컬',3,10,15,2]],
+  legs:      [['레그 프레스',3,8,12,10], ['핵 스쿼트 머신',3,8,12,5], ['레그 익스텐션',3,10,15,5],
+              ['라잉 레그 컬',3,10,15,5], ['카프 레이즈',3,12,20,5]],
+  shoulders: [['숄더 프레스 머신',3,8,12,5], ['덤벨 사이드 레터럴 레이즈',3,12,15,1], ['리어 델트 플라이 머신',3,12,15,5],
+              ['케이블 페이스풀',3,12,15,2.5], ['덤벨 슈러그',3,10,15,2]],
+};
+
+const WO_SETTINGS = db.collection('settings').doc('workout');
+const TS = () => firebase.firestore.FieldValue.serverTimestamp();
+const DEVICE_ID = (()=>{ try{ let d=localStorage.getItem('wm_device'); if(!d){ d=Math.random().toString(36).slice(2); localStorage.setItem('wm_device',d); } return d; }catch(e){ return Math.random().toString(36).slice(2); } })();
+
+let exercises = [];            // 루틴에 등록된 운동
+let workouts  = [];            // 운동 세션(진행 중 + 완료)
+let woSettings = { restSec:90, seeded:false };
+let exFromServer=false, setFromServer=false, seeding=false, exLoaded=false;
+let active = null;             // 진행 중인 세션 (이 기기에서 편집 중인 사본)
+let selectedPart = null, userPicked = false;
+
+/* ---------- 유틸 ---------- */
+const esc = escapeHtml;
+function num(v){ if(v===''||v==null) return null; const n=parseFloat(String(v).replace(',','.')); return isFinite(n)?n:null; }
+function rw(x){ return Math.round(x*100)/100; }
+function fmtK(w){ const n=num(w); return n==null ? '' : String(rw(n)); }
+function fmtVol(v){ return Math.round(v).toLocaleString('ko-KR'); }
+function partName(id){ const p=PARTS.find(p=>p.id===id); return p?p.name:id; }
+function partEmoji(id){ const p=PARTS.find(p=>p.id===id); return p?p.emoji:'🏋️'; }
+function partExercises(part){ return exercises.filter(e=>e.part===part).sort((a,b)=>(a.order||0)-(b.order||0)); }
+function agoText(k){ if(!k) return '기록 없음'; const d=daysBetween(k,todayKey()); return d<=0?'오늘':d===1?'어제':d+'일 전'; }
+function roundTo(x,inc){ return inc>0 ? rw(Math.round(x/inc)*inc) : rw(x); }
+function setsText(sets){
+  const g=[]; for(const s of sets){ const l=g[g.length-1]; if(l && l.w===s.w) l.r.push(s.r); else g.push({w:s.w, r:[s.r]}); }
+  return g.map(x=>`${x.w>0?fmtK(x.w)+'kg':'맨몸'} × ${x.r.join('·')}`).join(', ');
+}
+function openModal(id){ $(id).classList.add('show'); }
+function closeModal(id){ $(id).classList.remove('show'); }
+document.addEventListener('click', e=>{
+  const c=e.target.closest('[data-close]'); if(c) closeModal(c.dataset.close);
+  if(e.target.classList && e.target.classList.contains('modal-bg') && e.target.id!=='settingsModal') closeModal(e.target.id);
+});
+
+/* =========================================================
+   12. 기록 분석 (점진적 과부하 판단)
+   ========================================================= */
+function e1rm(s){ return s.w>0 ? s.w*(1+s.r/30) : s.r; }      // 추정 1RM (Epley), 맨몸은 횟수
+function metrics(sets){
+  let top=0,best=0,vol=0,reps=0;
+  for(const s of sets){ top=Math.max(top,s.w); best=Math.max(best,e1rm(s)); vol+= s.w>0 ? s.w*s.r : s.r; reps+=s.r; }
+  return { top, best, vol, reps };
+}
+function doneWorkouts(){
+  return workouts.filter(w=>w.status==='done' && w.date)
+    .sort((a,b)=> a.date<b.date?-1 : a.date>b.date?1 : (a.finishedAt||0)-(b.finishedAt||0));
+}
+let histCache=null;
+function historyOf(exId){
+  if(!histCache){
+    histCache=new Map();
+    for(const w of doneWorkouts()) for(const e of (w.entries||[])){
+      const sets=(e.sets||[]).map(s=>({ w:num(s.w)||0, r:Math.round(num(s.r)||0) })).filter(s=>s.r>0);
+      if(!sets.length) continue;
+      if(!histCache.has(e.exId)) histCache.set(e.exId,[]);
+      histCache.get(e.exId).push({ date:w.date, wid:w.id, name:e.name, kind:e.kind, sets, m:metrics(sets) });
+    }
+  }
+  return histCache.get(exId)||[];
+}
+// 지난번 대비 판단: up(성장) / same(유지) / down(하락) / new
+function trendOf(cur, prev){
+  if(!prev) return 'new';
+  if(cur.top > prev.top+0.001 && cur.top>0) return 'up';                       // 무게가 늘었다
+  if(cur.best > prev.best+0.05) return 'up';                                   // 추정 1RM이 늘었다
+  if(cur.top >= prev.top-0.001 && cur.vol > prev.vol+0.01) return 'up';       // 같은 무게로 볼륨이 늘었다
+  if(cur.best < prev.best-0.05 && cur.vol < prev.vol-0.01) return 'down';
+  return 'same';
+}
+// 정체: 최근 3회 이상 추정 1RM 신기록이 없음 (디로드 이후부터 다시 셈)
+function stallInfo(h){
+  if(h.length<4) return { stalled:false, since:0 };
+  let bestIdx=0, dropIdx=0;
+  for(let i=1;i<h.length;i++){
+    if(h[i].m.best > h[bestIdx].m.best+0.05) bestIdx=i;
+    if(h[i].m.top < h[i-1].m.top-0.001) dropIdx=i;
+  }
+  const since = h.length-1-Math.max(bestIdx, dropIdx);
+  return { stalled: since>=3, since };
+}
+function exStatus(exId){
+  const h=historyOf(exId);
+  if(!h.length) return { k:'none', t:'기록 없음' };
+  if(h.length===1) return { k:'new', t:'🆕 첫 기록' };
+  if(h[h.length-1].kind==='deload') return { k:'same', t:'🔄 디로드' };
+  if(stallInfo(h).stalled) return { k:'stall', t:'⏸ 정체' };
+  const t=trendOf(h[h.length-1].m, h[h.length-2].m);
+  return t==='up' ? { k:'up', t:'📈 성장' } : t==='down' ? { k:'down', t:'📉 하락' } : { k:'same', t:'➡️ 유지' };
+}
+
+/* 다음 목표 추천 (목표 횟수 범위 방식) */
+function suggest(ex){
+  const h=historyOf(ex.id);
+  const n=Math.max(1, ex.sets||3), lo=ex.repMin||8, hi=Math.max(lo, ex.repMax||12), inc=num(ex.inc)||0;
+  if(!h.length){
+    const w = ex.startW!=null ? ex.startW : '';
+    return { kind:'new', label:'첫 기록', w, reps:Array(n).fill(lo),
+      goal: w!=='' ? `${fmtK(w)}kg로 ${lo}~${hi}회 × ${n}세트` : `${lo}~${hi}회를 할 수 있는 무게를 찾아서 기록해요` };
+  }
+  const last=h[h.length-1], top=last.m.top;
+  const work=last.sets.filter(s=>s.w===top);
+  const prevTop = h.length>1 ? h[h.length-2].m.top : top;
+  const st=stallInfo(h);
+  if(st.stalled && inc>0 && top>0 && top>=prevTop){
+    const w=Math.max(0, roundTo(top*0.9, inc));
+    return { kind:'deload', label:'디로드', w, reps:Array(n).fill(hi),
+      goal:`${st.since}회째 제자리예요. ${fmtK(w)}kg(약 -10%)로 낮춰 ${hi}회씩 다시 쌓아 올려요` };
+  }
+  const hitTop = work.length>=n && work.slice(0,n).every(s=>s.r>=hi);
+  if(hitTop && inc>0){
+    const w=rw(top+inc);
+    return { kind:'up', label:'증량', w, reps:Array(n).fill(lo),
+      goal:`지난번 ${hi}회 × ${n}세트 달성! ${fmtK(w)}kg로 올려서 ${lo}회 이상` };
+  }
+  if(work.length && work[0].r<lo && inc>0){
+    return { kind:'hold', label:'유지', w:top, reps:Array(n).fill(lo),
+      goal:`${top>0?fmtK(top)+'kg ':''}그대로, 먼저 모든 세트 ${lo}회 채우기` };
+  }
+  const cap = inc>0 ? hi : 999;
+  const reps = Array.from({length:n}, (_,i)=>{
+    const b = work[i] ? work[i].r : (work.length ? work[work.length-1].r : lo);
+    return Math.min(cap, Math.max(lo, b+1));
+  });
+  return { kind:'reps', label:'횟수+', w:top>0?top:'', reps,
+    goal:`${top>0?fmtK(top)+'kg ':''}그대로, 세트당 1회씩 더 (${reps.join('·')}회)` };
+}
+
+/* =========================================================
+   13. 렌더링
+   ========================================================= */
+function partLast(){ const m={}; for(const w of doneWorkouts()) m[w.part]=w.date; return m; }
+function recommendPart(){
+  const L=partLast(); let best=null;
+  for(const p of PARTS){
+    const score = L[p.id] ? daysBetween(L[p.id], todayKey()) : 1e9;
+    if(!best || score>best.score) best={ id:p.id, score };
+  }
+  return best.id;
+}
+function weekKey(k){ const d=parseKey(k); d.setDate(d.getDate()-((d.getDay()+6)%7)); return toKey(d); }
+function allExIds(){ const s=new Set(); for(const w of doneWorkouts()) for(const e of (w.entries||[])) s.add(e.exId); return [...s]; }
+function rate4w(){
+  const since=addDays(todayKey(),-27); let up=0,total=0;
+  for(const id of allExIds()){ const h=historyOf(id);
+    for(let i=1;i<h.length;i++) if(h[i].date>=since && h[i].kind!=='deload'){ total++; if(trendOf(h[i].m,h[i-1].m)==='up') up++; } }
+  return { up, total, rate: total ? Math.round(up/total*100) : null };
+}
+function prCount(){
+  let c=0;
+  for(const id of allExIds()){ const h=historyOf(id); let b=h.length?h[0].m.best:0;
+    for(let i=1;i<h.length;i++) if(h[i].m.best>b+0.05){ c++; b=h[i].m.best; } }
+  return c;
+}
+
+function renderWorkout(){
+  histCache=null;
+  renderWoStats(); renderStart(); renderReport(); renderSessionList();
+}
+function renderWoStats(){
+  const done=doneWorkouts(), wk=weekKey(todayKey());
+  $('wsWeek').innerHTML = done.filter(w=>weekKey(w.date)===wk).length+'<small>회</small>';
+  const set=new Set(done.map(w=>weekKey(w.date)));
+  let k=wk, c=0; if(!set.has(k)) k=addDays(k,-7);
+  while(set.has(k)){ c++; k=addDays(k,-7); }
+  $('wsStreak').innerHTML = c+'<small>주</small>';
+  const r=rate4w();
+  $('wsRate').innerHTML = r.rate==null ? '-' : r.rate+'<small>%</small>';
+  $('wsPr').innerHTML = prCount()+'<small>개</small>';
+}
+
+function renderStart(){
+  $('startCard').style.display = active ? 'none' : '';
+  if(active) return;
+  const rec=recommendPart(), L=partLast();
+  if(!userPicked || !selectedPart) selectedPart=rec;
+  $('recBox').innerHTML = `<div class="t">오늘은 이 부위 차례예요</div>
+    <div class="p">${partEmoji(rec)} ${partName(rec)}</div>
+    <div class="s">${L[rec] ? '마지막 운동 '+agoText(L[rec])+' · 가장 오래 쉰 부위' : '아직 한 번도 기록하지 않은 부위'}</div>`;
+  $('partGrid').innerHTML = PARTS.map(p=>`<button class="part ${p.id===selectedPart?'sel':''}" data-p="${p.id}">
+      ${p.id===rec?'<span class="star">추천</span>':''}<b>${p.name}</b><span>${agoText(L[p.id])}</span></button>`).join('');
+  const exs=partExercises(selectedPart);
+  $('partPreview').innerHTML = exs.length
+    ? '<ul class="pv">'+exs.map(ex=>{ const s=suggest(ex);
+        return `<li><span>${esc(ex.name)}<span class="tag k-${s.kind}">${s.label}</span></span>
+          <span class="rt">${s.w!==''&&s.w!=null ? fmtK(s.w)+'kg × '+s.reps[0]+'회~' : ''}</span></li>`; }).join('')+'</ul>'
+    : `<div class="empty-msg">${exLoaded?'등록된 운동이 없어요. 루틴 관리에서 추가해주세요.':'루틴 불러오는 중…'}</div>`;
+  $('startBtn').textContent = partName(selectedPart)+' 운동 시작';
+  $('startBtn').disabled = !exs.length;
+}
+
+function renderReport(){
+  const r=rate4w(); let html='';
+  if(r.rate==null){
+    html+=`<div class="rate"><div class="ring" style="--p:0"><span>-</span></div><div>
+      <div class="t">아직 비교할 기록이 부족해요</div>
+      <div class="m">같은 운동을 두 번 이상 기록하면 지난번과 비교해서 과부하가 잘 되고 있는지 판단해요.</div></div></div>`;
+  } else {
+    const [t,m] = r.rate>=60 ? ['과부하가 아주 잘 되고 있어요 🔥','지금 루틴이 몸에 잘 맞아요. 이 흐름 그대로!']
+               : r.rate>=35 ? ['꾸준히 성장 중이에요 👍','무게나 횟수가 는 날이 충분해요. 정체된 운동만 챙기면 돼요.']
+               : ['정체 신호가 보여요 ⚠️','잠·식사량(특히 단백질)을 점검하고, 정체된 운동은 디로드 추천을 따라보세요.'];
+    html+=`<div class="rate"><div class="ring" style="--p:${r.rate}"><span>${r.rate}%</span></div><div>
+      <div class="t">${t}</div><div class="m">최근 4주 동안 운동 ${r.total}번 중 <b>${r.up}번</b> 지난 기록을 넘었어요. ${m}</div></div></div>`;
+  }
+  const L=partLast();
+  for(const p of PARTS){
+    const exs=partExercises(p.id); if(!exs.length) continue;
+    html+=`<div class="part-sec"><h4><span>${p.name}</span><span>${L[p.id]?'마지막 '+agoText(L[p.id]):''}</span></h4>`;
+    html+=exs.map(ex=>{
+      const h=historyOf(ex.id), st=exStatus(ex.id), last=h[h.length-1];
+      let sub='아직 기록 없음';
+      if(last){
+        sub='최근 '+setsText(last.sets);
+        if(h.length>1 && h[0].m.best>0){ const ch=(last.m.best-h[0].m.best)/h[0].m.best*100; sub+=` · 처음보다 ${ch>=0?'+':''}${ch.toFixed(0)}%`; }
+      }
+      return `<div class="exrow" data-ex="${ex.id}"><div><div class="nm">${esc(ex.name)}</div><div class="sub">${sub}</div></div>
+        <span class="st st-${st.k}">${st.t}</span></div>`;
+    }).join('')+'</div>';
+  }
+  $('report').innerHTML=html;
+}
+
+function renderSessionList(){
+  const list=doneWorkouts().slice(-15).reverse();
+  if(!list.length){ $('sessionList').innerHTML='<li class="empty-msg">완료한 운동이 여기에 쌓여요</li>'; return; }
+  $('sessionList').innerHTML=list.map(w=>{
+    const n=(w.entries||[]).length, res=w.result||{};
+    const badge = res.comps ? `<span class="df ${res.ups/res.comps>=.5?'down':'flat'}">📈 ${res.ups}/${res.comps}</span>` : '<span class="df flat">첫 기록</span>';
+    return `<li data-w="${w.id}"><span><span class="d">${longDate(w.date)}</span> <b style="margin-left:4px">${partName(w.part)}</b>
+      <span class="memo">${n}종목 · ${fmtVol(w.volume||0)}kg</span></span><span class="r">${badge}</span></li>`;
+  }).join('');
+}
+
+/* ---------- 진행 중인 세션 ---------- */
+function makeEntry(ex){
+  const s=suggest(ex);
+  return { exId:ex.id, name:ex.name, kind:s.kind, label:s.label, goal:s.goal,
+           sets:s.reps.map(r=>({ w:s.w===''||s.w==null?'':s.w, r, done:false })) };
+}
+function entryHtml(en,i){
+  const h=historyOf(en.exId), last=h[h.length-1];
+  const lastTxt = last ? `지난번 ${shortDate(last.date)} · ${setsText(last.sets)}` : '이전 기록 없음';
+  const allDone = en.sets.length && en.sets.every(s=>s.done);
+  return `<div class="ex ${allDone?'complete':''}" data-i="${i}">
+    <div class="ex-head"><div><b>${esc(en.name)}</b><span class="tag k-${en.kind}">${en.label}</span></div>
+      <button class="ex-x" data-act="rmEx" aria-label="이 운동 빼기">×</button></div>
+    <div class="ex-last">${lastTxt}</div>
+    <div class="ex-goal">🎯 ${esc(en.goal)}</div>
+    ${en.sets.map((s,j)=>`<div class="set-row ${s.done?'done':''}" data-j="${j}">
+      <span class="sn">${j+1}</span>
+      <input class="w" inputmode="decimal" value="${s.w==null?'':esc(s.w)}" placeholder="무게">
+      <span class="u">kg ×</span>
+      <input class="r" inputmode="numeric" value="${s.r==null?'':esc(s.r)}" placeholder="횟수">
+      <span class="u">회</span>
+      <button class="chk" data-act="chk" aria-label="세트 완료">✓</button></div>`).join('')}
+    <div class="ex-foot"><button class="mini" data-act="addSet">+ 세트</button>${en.sets.length>1?'<button class="mini" data-act="rmSet">− 세트</button>':''}</div>
+  </div>`;
+}
+function renderSession(){
+  const el=$('sessionArea');
+  if(!active){ el.innerHTML=''; stopElapsed(); return; }
+  const used=new Set(active.entries.map(e=>e.exId));
+  const opts=PARTS.map(p=>{ const l=partExercises(p.id).filter(e=>!used.has(e.id));
+    return l.length ? `<optgroup label="${p.name}">${l.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}</optgroup>` : ''; }).join('');
+  el.innerHTML=`<section class="card">
+    <div class="sess-head"><div><div class="p">${partEmoji(active.part)} ${partName(active.part)}</div><div class="elapsed" id="elapsed"></div></div>
+      <input type="date" id="sessDate" value="${active.date}" max="${todayKey()}"></div>
+    ${active.entries.length ? active.entries.map(entryHtml).join('') : '<div class="empty-msg">아래에서 운동을 추가하세요</div>'}
+    <select class="add-ex" id="addEx"><option value="">+ 다른 운동 추가</option>${opts}</select>
+    <div class="btns"><button class="btn gray" data-act="cancel" style="flex:0 0 auto;padding:0 18px">취소</button>
+      <button class="btn" data-act="finish">운동 완료</button></div>
+  </section>`;
+  startElapsed();
+}
+let elapsedTimer=null;
+function startElapsed(){
+  stopElapsed();
+  const tick=()=>{ const el=$('elapsed'); if(!el||!active) return;
+    const m=Math.floor((Date.now()-(active.startedAt||Date.now()))/60000);
+    const done=active.entries.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
+    const all=active.entries.reduce((a,e)=>a+e.sets.length,0);
+    el.textContent=`⏱ ${m}분 경과 · ${done}/${all}세트 완료`; };
+  tick(); elapsedTimer=setInterval(tick,15000);
+}
+function stopElapsed(){ clearInterval(elapsedTimer); elapsedTimer=null; }
+
+/* ---------- 세션 저장 (클라우드) ---------- */
+let saveTimer=null;
+function saveActive(now){
+  clearTimeout(saveTimer);
+  const go=()=>{ if(!active) return; const { id, ...data }=active;
+    db.collection('workouts').doc(id).set({ ...data, device:DEVICE_ID, updatedAt:TS() })
+      .catch(e=>{ console.error(e); toast('저장 실패: '+(e.code||e.message)); }); };
+  if(now) go(); else saveTimer=setTimeout(go,600);
+}
+function startSession(){
+  if(active) return;
+  const exs=partExercises(selectedPart); if(!exs.length) return;
+  const ref=db.collection('workouts').doc();
+  active={ id:ref.id, date:todayKey(), part:selectedPart, status:'in_progress', startedAt:Date.now(), entries:exs.map(makeEntry) };
+  saveActive(true);
+  renderSession(); renderStart();
+  window.scrollTo({ top: $('sessionArea').offsetTop-10, behavior:'smooth' });
+}
+function refreshEntryState(exEl){
+  const i=+exEl.dataset.i, en=active.entries[i];
+  exEl.classList.toggle('complete', en.sets.length>0 && en.sets.every(s=>s.done));
+  const el=$('elapsed'); if(el) startElapsed();
+}
+
+$('sessionArea').addEventListener('input', e=>{
+  const row=e.target.closest('.set-row'); if(!row||!active) return;
+  const i=+row.closest('.ex').dataset.i, j=+row.dataset.j, s=active.entries[i].sets[j];
+  if(e.target.classList.contains('w')) s.w=e.target.value.trim();
+  if(e.target.classList.contains('r')) s.r=e.target.value.trim();
+  saveActive();
+});
+$('sessionArea').addEventListener('change', e=>{
+  if(!active) return;
+  if(e.target.id==='sessDate'){ active.date=e.target.value||todayKey(); saveActive(true); }
+  if(e.target.id==='addEx' && e.target.value){
+    const ex=exercises.find(x=>x.id===e.target.value);
+    if(ex){ active.entries.push(makeEntry(ex)); saveActive(true); renderSession(); }
+  }
+});
+$('sessionArea').addEventListener('click', e=>{
+  const b=e.target.closest('[data-act]'); if(!b||!active) return;
+  const act=b.dataset.act, exEl=b.closest('.ex'), i=exEl?+exEl.dataset.i:-1, en=i>=0?active.entries[i]:null;
+  if(act==='chk'){
+    const row=b.closest('.set-row'), j=+row.dataset.j, s=en.sets[j];
+    if(!s.done){
+      const w=num(s.w), r=num(s.r);
+      if(w==null || w<0){ toast('무게를 입력해주세요 (맨몸은 0)'); row.querySelector('.w').focus(); return; }
+      if(r==null || r<1 || r!==Math.round(r)){ toast('횟수를 입력해주세요'); row.querySelector('.r').focus(); return; }
+      s.w=w; s.r=r; s.done=true;
+      // 다음 세트 무게가 비어 있으면 같은 무게로 채워줌
+      en.sets.forEach((x,k)=>{ if(k>j && !x.done && (x.w===''||x.w==null)){ x.w=w; const inp=exEl.querySelector(`.set-row[data-j="${k}"] .w`); if(inp) inp.value=w; } });
+      const moreLeft = active.entries.some(x=>x.sets.some(y=>!y.done));
+      if(moreLeft) startRest();
+    } else s.done=false;
+    row.classList.toggle('done', s.done);
+    refreshEntryState(exEl); saveActive(true);
+  }
+  else if(act==='addSet'){ const l=en.sets[en.sets.length-1]||{w:'',r:''}; en.sets.push({ w:l.w, r:l.r, done:false }); saveActive(true); renderSession(); }
+  else if(act==='rmSet'){ en.sets.pop(); saveActive(true); renderSession(); }
+  else if(act==='rmEx'){
+    if(en.sets.some(s=>s.done) && !confirm(en.name+'을(를) 오늘 운동에서 뺄까요? 완료한 세트도 지워져요.')) return;
+    active.entries.splice(i,1); saveActive(true); renderSession();
+  }
+  else if(act==='cancel'){
+    if(!confirm('진행 중인 운동을 취소할까요? 오늘 입력한 내용이 삭제돼요.')) return;
+    const id=active.id; active=null; stopRest(); clearTimeout(saveTimer);
+    db.collection('workouts').doc(id).delete().catch(()=>{});
+    renderSession(); renderWorkout();
+  }
+  else if(act==='finish') finishSession();
+});
+
+/* ---------- 운동 완료 & 요약 ---------- */
+function buildSummary(s){
+  const items=[]; let vol=0, prs=0, ups=0, comps=0;
+  for(const en of s.entries){
+    const sets=en.sets.filter(x=>x.done).map(x=>({ w:num(x.w)||0, r:Math.round(num(x.r)||0) })).filter(x=>x.r>0);
+    if(!sets.length) continue;
+    const m=metrics(sets); vol+=m.vol;
+    const h=historyOf(en.exId).filter(x=>x.wid!==s.id), prev=h[h.length-1];
+    const t= en.kind==='deload' ? 'deload' : trendOf(m, prev&&prev.m);
+    const pr=[];
+    if(h.length){
+      const bTop=Math.max(...h.map(x=>x.m.top)), bE=Math.max(...h.map(x=>x.m.best));
+      if(m.top>0 && m.top>bTop+0.001) pr.push('최고 무게');
+      else if(m.best>bE+0.05) pr.push(m.top>0?'1RM 신기록':'최다 횟수');
+    }
+    prs+=pr.length; if(t!=='new' && t!=='deload'){ comps++; if(t==='up') ups++; }
+    items.push({ name:en.name, sets, prev, t, pr });
+  }
+  const prevPart=doneWorkouts().filter(w=>w.part===s.part && w.id!==s.id && w.date<=s.date).pop();
+  return { items, vol, prs, ups, comps, pvol: prevPart ? (prevPart.volume||0) : null };
+}
+function finishSession(){
+  const doneSets=active.entries.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
+  if(!doneSets){ toast('완료(✓)한 세트가 없어요'); return; }
+  const left=active.entries.reduce((a,e)=>a+e.sets.filter(s=>!s.done).length,0);
+  if(!confirm(left ? `체크하지 않은 ${left}세트는 기록되지 않아요. 운동을 완료할까요?` : '운동을 완료할까요?')) return;
+  const sm=buildSummary(active);
+  const { id, ...data }=active;
+  data.entries=data.entries.map(e=>({ ...e, sets:e.sets.filter(s=>s.done).map(s=>({ w:num(s.w)||0, r:Math.round(num(s.r)), done:true })) }))
+                           .filter(e=>e.sets.length);
+  data.status='done'; data.finishedAt=Date.now(); data.volume=Math.round(sm.vol);
+  data.result={ ups:sm.ups, comps:sm.comps, prs:sm.prs };
+  active=null; selectedPart=null; userPicked=false; stopRest(); clearTimeout(saveTimer);
+  db.collection('workouts').doc(id).set({ ...data, device:DEVICE_ID, updatedAt:TS() })
+    .catch(e=>{ console.error(e); toast('저장 실패: '+(e.code||e.message)); });
+  renderSession(); showSummary(sm, data.part);
+  window.scrollTo(0,0);
+}
+function showSummary(sm, part){
+  let e,t,m;
+  if(sm.prs>0){ e='🏆'; t=`신기록 ${sm.prs}개!`; m='오늘 몸이 한 단계 올라섰어요. 이 기분 기억해두세요!'; }
+  else if(sm.comps && sm.ups/sm.comps>=.5){ e='📈'; t='과부하 성공!'; m=`${sm.comps}개 운동 중 ${sm.ups}개에서 지난번을 넘었어요. 근육이 자랄 이유를 줬어요.`; }
+  else if(sm.comps && sm.ups>0){ e='💪'; t='조금씩 전진 중'; m=`${sm.ups}개 운동에서 성장했어요. 나머지는 다음에 딱 1회만 더 해봐요.`; }
+  else if(sm.comps){ e='🔋'; t='오늘은 버틴 날'; m='매번 늘 수는 없어요. 같은 무게를 해낸 것도 다음 증량의 발판이에요. 잠과 단백질도 챙겨요.'; }
+  else { e='🌱'; t='첫 기록 완료!'; m='오늘 기록이 다음 점진적 과부하의 기준점이 돼요.'; }
+  let vol=`총 볼륨 <b>${fmtVol(sm.vol)}kg</b>`;
+  if(sm.pvol){ const d=(sm.vol-sm.pvol)/sm.pvol*100; vol+=` · 지난 ${partName(part)} 대비 <b class="${d>=0?'down':'up'}">${d>=0?'+':''}${d.toFixed(1)}%</b>`; }
+  const icon={ up:'📈', same:'➡️', down:'📉', new:'🆕', deload:'🔄' };
+  $('summaryBody').innerHTML=`<div class="sum-head"><div class="e">${e}</div><div class="t">${t}</div><div class="m">${m}</div></div>
+    <div class="sum-vol">${vol}</div>
+    ${sm.items.map(it=>`<div class="sum-item"><div class="nm">${icon[it.t]} ${esc(it.name)}${it.pr.map(p=>`<span class="pr">🏆 ${p}</span>`).join('')}</div>
+      <div class="sub">오늘 ${setsText(it.sets)}${it.prev?`<br>지난번 ${setsText(it.prev.sets)}`:''}</div></div>`).join('')}`;
+  openModal('summaryModal');
+}
+
+/* ---------- 휴식 타이머 ---------- */
+let restEnd=0, restTotal=90, restTimer=null;
+function startRest(){
+  restTotal=woSettings.restSec||90; restEnd=Date.now()+restTotal*1000;
+  $('rest').classList.add('show'); clearInterval(restTimer); tickRest(); restTimer=setInterval(tickRest,250);
+}
+function tickRest(){
+  const left=Math.max(0,Math.ceil((restEnd-Date.now())/1000));
+  $('restTm').textContent=Math.floor(left/60)+':'+pad(left%60);
+  $('restBar').style.width=Math.min(100,left/restTotal*100)+'%';
+  if(left<=0){ stopRest(); toast('휴식 끝! 다음 세트 가볼까요 💪'); try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){} }
+}
+function stopRest(){ clearInterval(restTimer); restTimer=null; $('rest').classList.remove('show'); }
+$('restPlus').onclick=()=>{ restEnd+=30000; restTotal+=30; tickRest(); };
+$('restStop').onclick=stopRest;
+
+/* ---------- 지난 운동 상세 ---------- */
+let viewingWid=null;
+function openSess(wid){
+  const w=workouts.find(x=>x.id===wid); if(!w) return; viewingWid=wid;
+  $('sessBody').innerHTML=`<h3>${partEmoji(w.part)} ${partName(w.part)}</h3>
+    <div style="font-size:13px;color:var(--sub);margin:-10px 0 10px">${longDate(w.date)} · 총 볼륨 ${fmtVol(w.volume||0)}kg</div>
+    <ul class="hist">${(w.entries||[]).map(e=>{ const sets=(e.sets||[]).map(s=>({w:num(s.w)||0,r:num(s.r)||0}));
+      return `<li><span><b>${esc(e.name)}</b></span><span class="d">${setsText(sets)}</span></li>`; }).join('')}</ul>`;
+  openModal('sessModal');
+}
+$('sessionList').addEventListener('click', e=>{ const li=e.target.closest('li[data-w]'); if(li) openSess(li.dataset.w); });
+$('sessDelete').onclick=()=>{
+  if(!viewingWid || !confirm('이 운동 기록을 삭제할까요?')) return;
+  db.collection('workouts').doc(viewingWid).delete().then(()=>toast('삭제했어요')).catch(e=>toast('삭제 실패: '+(e.code||e.message)));
+  closeModal('sessModal');
+};
+$('sessReopen').onclick=()=>{
+  if(active){ toast('진행 중인 운동을 먼저 완료하거나 취소해주세요'); return; }
+  const w=workouts.find(x=>x.id===viewingWid); if(!w) return;
+  const { id, ...data }=w;
+  active={ id, ...data, status:'in_progress', startedAt:Date.now(),
+           entries:(data.entries||[]).map(e=>({ ...e, sets:(e.sets||[]).map(s=>({ ...s, done:true })) })) };
+  saveActive(true); closeModal('sessModal'); renderSession(); renderWorkout();
+  window.scrollTo({ top: $('sessionArea').offsetTop-10, behavior:'smooth' });
+};
+
+/* ---------- 운동별 상세 (그래프) ---------- */
+let exChart=null;
+function openExDetail(exId){
+  const ex=exercises.find(x=>x.id===exId), h=historyOf(exId);
+  $('exTitle').textContent = ex ? ex.name : (h[0]?h[0].name:'운동');
+  const s=suggest(ex||{id:exId});
+  const bestTop=h.length?Math.max(...h.map(x=>x.m.top)):0, bestE=h.length?Math.max(...h.map(x=>x.m.best)):0;
+  $('exStats').innerHTML=`
+    <div class="stat"><div class="k">최고 무게</div><div class="v">${h.length?fmtK(bestTop)+'<small>kg</small>':'-'}</div></div>
+    <div class="stat"><div class="k">추정 1RM</div><div class="v">${h.length?bestE.toFixed(1)+'<small>kg</small>':'-'}</div></div>
+    <div class="stat"><div class="k">다음 목표</div><div class="v" style="font-size:15px">${s.w!==''&&s.w!=null?fmtK(s.w)+'<small>kg</small>':'-'}</div></div>`;
+  $('exHist').innerHTML = h.length ? h.slice().reverse().map(x=>`<li><span class="d">${longDate(x.date)}</span><span>${setsText(x.sets)}</span></li>`).join('')
+                                   : '<li class="empty-msg" style="justify-content:center">아직 기록이 없어요</li>';
+  openModal('exModal');
+  const data={ labels:h.map(x=>shortDate(x.date)), datasets:[
+    { label:'최고 무게', data:h.map(x=>x.m.top), borderColor:'#0f9f6e', backgroundColor:'#0f9f6e', borderWidth:2.5, tension:.25, pointRadius:3.5 },
+    { label:'추정 1RM', data:h.map(x=>rw(x.m.best)), borderColor:'#6a8fd6', borderDash:[5,4], borderWidth:1.8, tension:.25, pointRadius:0 } ]};
+  const opts={ responsive:true, maintainAspectRatio:false, animation:{duration:300}, interaction:{mode:'index',intersect:false},
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>` ${c.dataset.label}: ${fmtK(c.raw)}kg` } } },
+    scales:{ x:{ grid:{display:false}, ticks:{ color:'#8a948f', font:{size:10}, maxTicksLimit:6 } },
+             y:{ grid:{color:'#edf2ef'}, ticks:{ color:'#8a948f', font:{size:10}, callback:v=>v+'kg' } } } };
+  if(exChart){ exChart.destroy(); exChart=null; }
+  if(h.length) exChart=new Chart($('exChart'), { type:'line', data, options:opts });
+}
+$('report').addEventListener('click', e=>{ const r=e.target.closest('.exrow'); if(r) openExDetail(r.dataset.ex); });
+
+/* ---------- 부위 선택 / 시작 ---------- */
+$('partGrid').addEventListener('click', e=>{ const b=e.target.closest('.part'); if(!b) return; selectedPart=b.dataset.p; userPicked=true; renderStart(); });
+$('startBtn').onclick=startSession;
+$('routineBtn').onclick=()=>openRoutine();
+
+/* =========================================================
+   14. 루틴 관리
+   ========================================================= */
+let rtPart='chest', editingEx=null;
+function openRoutine(){ rtPart=selectedPart||'chest'; $('restSec').value=woSettings.restSec||90; renderRoutine(); openModal('routineModal'); }
+function renderRoutine(){
+  $('rtTabs').innerHTML=PARTS.map(p=>`<button data-p="${p.id}" class="${p.id===rtPart?'active':''}">${p.name}</button>`).join('');
+  const exs=partExercises(rtPart);
+  $('rtList').innerHTML = exs.length ? exs.map((ex,i)=>`<div class="rt-row" data-id="${ex.id}">
+      <div class="nm"><b>${esc(ex.name)}</b><span>${ex.sets}세트 · ${ex.repMin}~${ex.repMax}회 · ${num(ex.inc)?'+'+fmtK(ex.inc)+'kg씩':'맨몸'}</span></div>
+      <button data-a="up" ${i===0?'disabled style="opacity:.35"':''}>▲</button>
+      <button data-a="down" ${i===exs.length-1?'disabled style="opacity:.35"':''}>▼</button>
+      <button data-a="edit">✎</button></div>`).join('')
+    : '<div class="empty-msg">등록된 운동이 없어요</div>';
+}
+$('rtTabs').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; rtPart=b.dataset.p; renderRoutine(); });
+$('rtList').addEventListener('click', e=>{
+  const b=e.target.closest('button[data-a]'); if(!b) return;
+  const id=b.closest('.rt-row').dataset.id, a=b.dataset.a;
+  if(a==='edit'){ openExEdit(exercises.find(x=>x.id===id)); return; }
+  const exs=partExercises(rtPart), i=exs.findIndex(x=>x.id===id), j=a==='up'?i-1:i+1;
+  if(j<0||j>=exs.length) return;
+  const batch=db.batch();
+  exs.forEach((x,k)=>{ const o = k===i ? j+1 : k===j ? i+1 : k+1; batch.update(db.collection('exercises').doc(x.id), { order:o }); x.order=o; });
+  renderRoutine(); batch.commit().catch(e=>toast('저장 실패: '+(e.code||e.message)));
+});
+$('rtAdd').onclick=()=>openExEdit(null);
+$('rtDone').onclick=()=>{
+  const r=Math.round(num($('restSec').value)||0);
+  if(r<10||r>600){ toast('휴식 시간은 10~600초로 입력해주세요'); return; }
+  if(r!==woSettings.restSec) WO_SETTINGS.set({ restSec:r }, { merge:true });
+  woSettings.restSec=r; closeModal('routineModal');
+};
+function openExEdit(ex){
+  editingEx=ex;
+  $('exEditTitle').textContent = ex ? '운동 수정' : '운동 추가';
+  $('ePart').innerHTML=PARTS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  $('eName').value = ex ? ex.name : '';
+  $('ePart').value = ex ? ex.part : rtPart;
+  $('eSets').value = ex ? ex.sets : 3;
+  $('eMin').value  = ex ? ex.repMin : 8;
+  $('eMax').value  = ex ? ex.repMax : 12;
+  $('eInc').value  = ex ? fmtK(ex.inc||0) : 5;
+  $('eStart').value= ex && ex.startW!=null ? fmtK(ex.startW) : '';
+  $('eDelete').style.display = ex ? 'block' : 'none';
+  openModal('exEditModal');
+}
+$('eSave').onclick=()=>{
+  const name=$('eName').value.trim(), part=$('ePart').value;
+  const sets=num($('eSets').value), lo=num($('eMin').value), hi=num($('eMax').value), inc=num($('eInc').value);
+  const sw=$('eStart').value.trim()==='' ? null : num($('eStart').value);
+  if(!name){ toast('운동 이름을 입력해주세요'); return; }
+  if(!sets||sets<1||sets>10||sets!==Math.round(sets)){ toast('세트 수는 1~10 사이로 입력해주세요'); return; }
+  if(!lo||!hi||lo<1||hi>100||lo>hi||lo!==Math.round(lo)||hi!==Math.round(hi)){ toast('횟수 범위를 확인해주세요 (최소 ≤ 최대)'); return; }
+  if(inc==null||inc<0||inc>50){ toast('증량 단위를 확인해주세요 (0~50kg)'); return; }
+  if($('eStart').value.trim()!=='' && (sw==null||sw<0)){ toast('시작 무게를 확인해주세요'); return; }
+  const data={ name, part, sets, repMin:lo, repMax:hi, inc, startW:sw };
+  if(editingEx){
+    if(editingEx.part!==part) data.order=partExercises(part).length+1;
+    db.collection('exercises').doc(editingEx.id).set(data, { merge:true });
+  } else {
+    data.order=partExercises(part).reduce((a,x)=>Math.max(a,x.order||0),0)+1;
+    db.collection('exercises').doc().set(data);
+  }
+  rtPart=part; closeModal('exEditModal'); toast('저장했어요');
+};
+$('eDelete').onclick=()=>{
+  if(!editingEx || !confirm(editingEx.name+'을(를) 루틴에서 삭제할까요? 지난 기록은 그대로 남아요.')) return;
+  db.collection('exercises').doc(editingEx.id).delete();
+  closeModal('exEditModal'); toast('삭제했어요');
+};
+
+/* =========================================================
+   15. 실시간 동기화 (onSnapshot) — 운동
+   ========================================================= */
+function seedIfNeeded(){
+  if(seeding || !exFromServer || !setFromServer || woSettings.seeded || exercises.length) return;
+  seeding=true;
+  const b=db.batch();
+  for(const [part,list] of Object.entries(DEFAULT_ROUTINE))
+    list.forEach(([name,sets,repMin,repMax,inc],i)=>
+      b.set(db.collection('exercises').doc(part+'-'+(i+1)), { name, part, order:i+1, sets, repMin, repMax, inc, startW:null }));
+  b.set(WO_SETTINGS, { seeded:true }, { merge:true });
+  b.commit().catch(e=>console.error(e)).finally(()=>{ seeding=false; });
+}
+WO_SETTINGS.onSnapshot({ includeMetadataChanges:true }, doc=>{
+  const d=doc.exists?doc.data():{};
+  woSettings={ restSec:d.restSec||90, seeded:!!d.seeded };
+  if(!doc.metadata.fromCache) setFromServer=true;
+  seedIfNeeded();
+}, showError);
+
+db.collection('exercises').onSnapshot({ includeMetadataChanges:true }, snap=>{
+  exercises=snap.docs.map(d=>({ id:d.id, ...d.data() }));
+  if(!snap.metadata.fromCache) exFromServer=true;
+  exLoaded = exFromServer || exercises.length>0;
+  seedIfNeeded();
+  renderWorkout();
+  if(active) renderSession();
+  if($('routineModal').classList.contains('show')) renderRoutine();
+}, showError);
+
+db.collection('workouts').onSnapshot(snap=>{
+  workouts=snap.docs.map(d=>({ id:d.id, ...d.data() }));
+  const remote=workouts.filter(w=>w.status==='in_progress').sort((a,b)=>(b.startedAt||0)-(a.startedAt||0))[0]||null;
+  let redraw=false;
+  if(!remote){ if(active){ active=null; stopRest(); redraw=true; } }
+  else if(!active || active.id!==remote.id || remote.device!==DEVICE_ID){
+    // 다른 기기에서 시작/수정한 세션을 가져옴 (내가 방금 저장한 건 무시해서 입력 중인 칸이 초기화되지 않게)
+    const { updatedAt, device, ...rest }=remote;
+    active=JSON.parse(JSON.stringify(rest)); redraw=true;
+  }
+  renderWorkout();
+  if(redraw) renderSession();
+}, showError);
+
+/* 시작 탭 */
+(function(){ let t='weight'; try{ t=localStorage.getItem('wm_tab')||'weight'; }catch(e){} switchTab(t==='workout'?'workout':'weight'); })();
+renderWorkout();
 </script>
 </body>
 </html>
