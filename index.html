@@ -1,186 +1,767 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>체중 관리 서비스</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body { font-family: 'Pretendard', sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h1 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
-        .motivation { text-align: center; font-weight: bold; color: #e74c3c; margin-bottom: 20px; font-size: 1.1em; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
-        input[type="number"], input[type="date"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
-        button { padding: 10px 15px; border: none; border-radius: 6px; background: #3498db; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #2980b9; }
-        .chart-container { margin-top: 30px; position: relative; height: 250px; }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 10px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .day-name { font-weight: bold; color: #7f8c8d; font-size: 0.9em; padding-bottom: 5px; }
-        .day-cell { border: 1px solid #eee; border-radius: 6px; padding: 10px 5px; min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafafa; }
-        .day-cell.today { border-color: #3498db; background: #eef7fc; }
-        .weight-badge { margin-top: 5px; background: #2ecc71; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8em; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f9f6e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="체중관리">
+<title>체중 관리</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+
+<!-- Firebase (compat SDK: db.collection(...) 문법 사용) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- 그래프 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg:#f3f6f4; --card:#ffffff; --text:#17201b; --sub:#6b7770; --line:#e4ebe7;
+    --primary:#0f9f6e; --primary-soft:#e3f5ed;
+    --down:#15944f; --up:#dc2f2f; --warn:#d98a06; --flat:#8a948f;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg)}
+  body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+       color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:40px}
+  button{font-family:inherit;cursor:pointer}
+  input{font-family:inherit}
+  .wrap{max-width:720px;margin:0 auto;padding:16px}
+
+  /* 헤더 */
+  header{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 14px}
+  header h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
+  .head-right{display:flex;align-items:center;gap:8px}
+  .dday{font-size:13px;font-weight:700;color:var(--primary);background:var(--primary-soft);padding:5px 10px;border-radius:99px}
+  .icon-btn{border:none;background:var(--card);width:36px;height:36px;border-radius:10px;font-size:18px;
+            box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .sync{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:5px;margin:-6px 2px 12px}
+  .sync i{width:7px;height:7px;border-radius:50%;background:var(--flat);display:inline-block}
+  .sync.on i{background:var(--primary)} .sync.off i{background:var(--warn)} .sync.err i{background:var(--up)}
+
+  .card{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:14px;
+        box-shadow:0 1px 3px rgba(20,40,30,.06)}
+  .card h2{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+  /* 진행률 */
+  .progress-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px}
+  .progress-label{font-size:13px;color:var(--sub);font-weight:600}
+  .progress-pct{font-size:38px;font-weight:800;letter-spacing:-1px;color:var(--primary);line-height:1}
+  .progress-pct small{font-size:18px;font-weight:700}
+  .bar{height:14px;background:var(--line);border-radius:99px;overflow:hidden}
+  .bar > div{height:100%;background:linear-gradient(90deg,#34d399,var(--primary));border-radius:99px;width:0;transition:width .6s}
+  .bar-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-top:6px}
+
+  /* 요약 3칸 */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  .stat{background:var(--bg);border-radius:12px;padding:12px 8px;text-align:center}
+  .stat .k{font-size:12px;color:var(--sub);font-weight:600}
+  .stat .v{font-size:19px;font-weight:800;margin-top:4px;letter-spacing:-.4px}
+  .stat .v small{font-size:12px;font-weight:600;color:var(--sub);margin-left:1px}
+  .down{color:var(--down)} .up{color:var(--up)} .flat{color:var(--flat)}
+
+  /* 평가 */
+  .verdict{display:flex;gap:12px;align-items:flex-start}
+  .verdict .emoji{font-size:34px;line-height:1}
+  .verdict .title{font-size:17px;font-weight:800;margin-bottom:4px}
+  .verdict .msg{font-size:14px;color:#3a463f;line-height:1.55}
+  .badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;margin-left:6px;vertical-align:2px}
+  .b-good{background:#dcf5e8;color:var(--down)} .b-ok{background:#e6effc;color:#2b63c4}
+  .b-warn{background:#fdf1dc;color:var(--warn)} .b-bad{background:#fde3e3;color:var(--up)}
+  .insights{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .insight{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .insight .k{font-size:11.5px;color:var(--sub);font-weight:600}
+  .insight .v{font-size:15px;font-weight:700;margin-top:3px}
+  .tip{margin-top:12px;font-size:13px;color:var(--sub);background:var(--bg);border-radius:10px;padding:10px 12px;line-height:1.5}
+  .tip.warn{background:#fff7e8;color:#8a5a00}
+
+  /* 입력 */
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .field label{display:block;font-size:12px;color:var(--sub);font-weight:600;margin-bottom:6px}
+  .field input{width:100%;height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 12px;font-size:16px;
+               background:#fff;color:var(--text);outline:none}
+  .field input:focus{border-color:var(--primary)}
+  .weight-input{position:relative}
+  .weight-input input{padding-right:38px;font-weight:700;font-size:18px}
+  .weight-input span{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--sub);font-size:14px}
+  .field.full{grid-column:1/-1}
+  .exist{font-size:12.5px;color:var(--warn);margin-top:8px;min-height:0}
+  .btns{display:flex;gap:8px;margin-top:12px}
+  .btn{flex:1;height:50px;border:none;border-radius:12px;font-size:16px;font-weight:700;background:var(--primary);color:#fff}
+  .btn:disabled{opacity:.5}
+  .btn.ghost{flex:0 0 auto;padding:0 18px;background:#fbeaea;color:var(--up)}
+  .btn.gray{background:var(--bg);color:var(--text)}
+
+  /* 그래프 */
+  .seg{display:flex;background:var(--bg);border-radius:10px;padding:3px}
+  .seg button{border:none;background:none;font-size:12px;font-weight:600;color:var(--sub);padding:5px 10px;border-radius:8px}
+  .seg button.active{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .chart-box{position:relative;height:260px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--sub);margin-top:10px}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:4px}
+
+  /* 달력 */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .cal-head b{font-size:16px}
+  .cal-head button{border:none;background:var(--bg);width:34px;height:34px;border-radius:10px;font-size:16px}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .dow{text-align:center;font-size:11.5px;font-weight:700;color:var(--sub);padding:4px 0}
+  .dow.sun{color:var(--up)} .dow.sat{color:#2b63c4}
+  .day{min-height:58px;border-radius:10px;padding:5px 2px;text-align:center;background:var(--bg);display:flex;flex-direction:column;
+       align-items:center;gap:3px;border:1.5px solid transparent;cursor:pointer;user-select:none}
+  .day.empty{background:none;cursor:default}
+  .day.future{opacity:.45;cursor:default}
+  .day .n{font-size:11.5px;color:var(--sub);font-weight:600}
+  .day .w{font-size:12.5px;font-weight:800;letter-spacing:-.4px}
+  .day .w small{display:block;font-size:9.5px;font-weight:700;margin-top:1px}
+  .day.today{border-color:var(--primary)}
+  .day.today .n{color:var(--primary)}
+  .day.selected{background:var(--primary-soft)}
+  .day.has{background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+  .day.has.selected{background:var(--primary-soft)}
+  .cal-note{font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.5}
+
+  /* 최근 기록 */
+  .list{list-style:none}
+  .list li{display:flex;align-items:center;justify-content:space-between;padding:11px 2px;border-bottom:1px solid var(--line);font-size:14px}
+  .list li:last-child{border-bottom:none}
+  .list .d{color:var(--sub);font-size:13px}
+  .list .memo{font-size:12px;color:var(--sub);margin-left:8px}
+  .list .r{display:flex;align-items:center;gap:10px}
+  .list .wt{font-weight:800}
+  .list .df{font-size:12.5px;font-weight:700;min-width:54px;text-align:right}
+  .empty-msg{text-align:center;color:var(--sub);font-size:14px;padding:18px 0}
+
+  /* 모달 */
+  .modal-bg{position:fixed;inset:0;background:rgba(10,20,15,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom))}
+  .modal h3{font-size:18px;margin-bottom:16px}
+  .modal .field{margin-bottom:12px}
+  .modal .hint{font-size:12px;color:var(--sub);margin-top:5px}
+  @media (min-width:560px){.modal-bg{align-items:center}.modal{border-radius:20px}}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#1d2721;color:#fff;
+         padding:11px 18px;border-radius:12px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:60;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .error-banner{display:none;background:#fde3e3;color:#8f1d1d;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.5;margin-bottom:14px}
+
+  @media (max-width:380px){
+    .stat .v{font-size:16px} .progress-pct{font-size:32px}
+    .day .w{font-size:11px} .day{min-height:54px}
+  }
+</style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="container">
-    <h1>📉 체중 기록 & 관리</h1>
-    <div id="motivationMsg" class="motivation">목표 체중을 설정해주세요!</div>
+  <header>
+    <h1>⚖️ 체중 관리</h1>
+    <div class="head-right">
+      <span class="dday" id="dday">D-</span>
+      <button class="icon-btn" id="openSettings" aria-label="설정">⚙️</button>
+    </div>
+  </header>
+  <div class="sync" id="sync"><i></i><span>연결 중…</span></div>
+  <div class="error-banner" id="errorBanner"></div>
 
-    <div class="input-group">
-        <input type="number" id="targetWeight" placeholder="목표 체중 (kg)" step="0.1">
-        <button onclick="saveTarget()">목표 저장</button>
+  <!-- 진행률 + 요약 -->
+  <section class="card">
+    <div class="progress-top">
+      <div>
+        <div class="progress-label">목표 달성률</div>
+        <div class="progress-pct" id="pct">0.0<small>%</small></div>
+      </div>
+      <div class="progress-label" id="goalText" style="text-align:right">목표 72kg</div>
     </div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div class="bar-legend"><span id="startLbl">시작 -</span><span id="goalLbl">목표 -</span></div>
 
-    <div class="input-group">
-        <input type="date" id="recordDate">
-        <input type="number" id="currentWeight" placeholder="오늘의 체중 (kg)" step="0.1">
-        <button onclick="saveWeight()">기록하기</button>
+    <div class="stats">
+      <div class="stat"><div class="k">현재 체중</div><div class="v" id="curW">-</div></div>
+      <div class="stat"><div class="k">시작 대비</div><div class="v" id="fromStart">-</div></div>
+      <div class="stat"><div class="k">목표까지</div><div class="v" id="toGoal">-</div></div>
     </div>
+  </section>
 
-    <div class="chart-container">
-        <canvas id="weightChart"></canvas>
+  <!-- 평가 / 동기부여 -->
+  <section class="card">
+    <h2>오늘의 평가</h2>
+    <div class="verdict">
+      <div class="emoji" id="vEmoji">🌱</div>
+      <div>
+        <div class="title" id="vTitle">첫 체중을 기록해보세요</div>
+        <div class="msg" id="vMsg">매일 같은 시간(아침 기상 직후, 화장실 다녀온 뒤)에 재면 가장 정확해요.</div>
+      </div>
     </div>
+    <div class="insights" id="insights"></div>
+    <div class="tip" id="vTip" style="display:none"></div>
+  </section>
 
-    <div class="calendar-header">
-        <button onclick="changeMonth(-1)">◀</button>
-        <h3 id="calendarMonth" style="margin: 0;">2026년 9월</h3>
-        <button onclick="changeMonth(1)">▶</button>
+  <!-- 입력 -->
+  <section class="card" id="formCard">
+    <h2>체중 기록</h2>
+    <div class="form-row">
+      <div class="field">
+        <label for="inDate">날짜</label>
+        <input type="date" id="inDate">
+      </div>
+      <div class="field weight-input">
+        <label for="inWeight">체중</label>
+        <div style="position:relative">
+          <input type="text" id="inWeight" inputmode="decimal" placeholder="예) 80.35" autocomplete="off">
+          <span>kg</span>
+        </div>
+      </div>
+      <div class="field full">
+        <label for="inMemo">메모 (선택)</label>
+        <input type="text" id="inMemo" maxlength="40" placeholder="예) 야식 먹음, 운동 1시간" autocomplete="off">
+      </div>
     </div>
-    
-    <div class="calendar-grid" id="calendarGrid">
-        <!-- 달력 렌더링 영역 -->
+    <div class="exist" id="existMsg"></div>
+    <div class="btns">
+      <button class="btn" id="saveBtn">저장</button>
+      <button class="btn ghost" id="delBtn" style="display:none">삭제</button>
     </div>
+  </section>
+
+  <!-- 그래프 -->
+  <section class="card">
+    <h2>체중 변화
+      <div class="seg" id="rangeSeg">
+        <button data-r="14">2주</button>
+        <button data-r="30" class="active">1개월</button>
+        <button data-r="90">3개월</button>
+        <button data-r="all">전체</button>
+      </div>
+    </h2>
+    <div class="chart-box"><canvas id="chart"></canvas></div>
+    <div class="legend">
+      <span><i style="background:#0f9f6e"></i>체중</span>
+      <span><i style="background:#9fb3a8"></i>7일 평균</span>
+      <span><i style="background:repeating-linear-gradient(90deg,#6a8fd6 0 4px,transparent 4px 7px)"></i>계획 페이스</span>
+      <span><i style="background:repeating-linear-gradient(90deg,#dc2f2f 0 4px,transparent 4px 7px)"></i>목표</span>
+    </div>
+  </section>
+
+  <!-- 달력 -->
+  <section class="card">
+    <div class="cal-head">
+      <button id="prevMonth" aria-label="이전 달">‹</button>
+      <b id="monthLbl">-</b>
+      <button id="nextMonth" aria-label="다음 달">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-note"><span class="down">초록 ▼</span> 직전 기록보다 감소 · <span class="up">빨강 ▲</span> 직전 기록보다 증가 · 날짜를 누르면 기록/수정할 수 있어요</div>
+  </section>
+
+  <!-- 최근 기록 -->
+  <section class="card">
+    <h2>최근 기록</h2>
+    <ul class="list" id="recentList"></ul>
+  </section>
 </div>
 
+<!-- 설정 모달 -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h3>목표 설정</h3>
+    <div class="field">
+      <label for="sGoal">목표 체중 (kg)</label>
+      <input type="text" id="sGoal" inputmode="decimal">
+    </div>
+    <div class="field">
+      <label for="sGoalDate">목표 날짜</label>
+      <input type="date" id="sGoalDate">
+    </div>
+    <div class="field">
+      <label for="sStart">시작 체중 (kg)</label>
+      <input type="text" id="sStart" inputmode="decimal" placeholder="비워두면 첫 기록 체중">
+      <div class="hint">비워두면 가장 처음 기록한 체중이 시작 체중이 돼요.</div>
+    </div>
+    <div class="field">
+      <label for="sStartDate">시작 날짜</label>
+      <input type="date" id="sStartDate">
+      <div class="hint">비워두면 가장 처음 기록한 날짜. 계획 페이스 계산에 쓰여요.</div>
+    </div>
+    <div class="btns">
+      <button class="btn gray" id="closeSettings">취소</button>
+      <button class="btn" id="saveSettings">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-    let weights = JSON.parse(localStorage.getItem('weights')) || {};
-    let target = localStorage.getItem('targetWeight') || null;
-    let chartInstance = null;
-    let currentDisplayDate = new Date();
+/* =========================================================
+   1. Firebase 설정
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyD5XW_I65ZjWFkiFrxWCQQKctA2Oht6BQE",
+  authDomain: "weight-management-19969.firebaseapp.com",
+  projectId: "weight-management-19969",
+  storageBucket: "weight-management-19969.firebasestorage.app",
+  messagingSenderId: "1077689440077",
+  appId: "1:1077689440077:web:8b894dfe41d312dbc24904"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+// 오프라인일 때도 입력 가능, 연결되면 자동 업로드
+try { db.enablePersistence({ synchronizeTabs: true }).catch(() => {}); } catch (e) {}
 
-    document.getElementById('recordDate').valueAsDate = new Date();
-    if (target) document.getElementById('targetWeight').value = target;
+const COL_WEIGHTS = 'weights';           // 체중 기록 (문서 ID = 날짜 'YYYY-MM-DD')
+const SETTINGS_DOC = db.collection('settings').doc('main');
 
-    function saveTarget() {
-        const val = document.getElementById('targetWeight').value;
-        if (!val) return alert("목표 체중을 입력하세요.");
-        localStorage.setItem('targetWeight', val);
-        target = val;
-        updateUI();
+const DEFAULTS = { goalWeight: 72, goalDate: '2027-01-22', startWeight: null, startDate: null };
+
+/* =========================================================
+   2. 상태
+   ========================================================= */
+let records = [];                 // [{date, weight, memo}] 날짜 오름차순
+let settings = { ...DEFAULTS };
+let chart = null;
+let chartRange = '30';
+const now = new Date();
+let viewYear = now.getFullYear(), viewMonth = now.getMonth();
+let selectedDate = todayKey();
+
+/* =========================================================
+   3. 유틸
+   ========================================================= */
+function pad(n){ return String(n).padStart(2,'0'); }
+function toKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function todayKey(){ return toKey(new Date()); }
+function parseKey(k){ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); }
+function daysBetween(a,b){ return Math.round((parseKey(b)-parseKey(a))/86400000); }   // b - a (일)
+function addDays(k,n){ const d=parseKey(k); d.setDate(d.getDate()+n); return toKey(d); }
+function fmtW(w){ let s=(Math.round(w*100)/100).toFixed(2); if(s.endsWith('0')) s=s.slice(0,-1); return s; }
+function fmtDiff(v){ const a=Math.abs(v); return (v>0?'+':v<0?'−':'±')+fmtW(a); }
+function r2(v){ return Math.round(v*100)/100; }
+function shortDate(k){ const d=parseKey(k); return (d.getMonth()+1)+'/'+d.getDate(); }
+function longDate(k){ const d=parseKey(k); const w='일월화수목금토'[d.getDay()]; return (d.getMonth()+1)+'월 '+d.getDate()+'일 ('+w+')'; }
+function parseWeight(str){
+  if(str==null) return null;
+  str=String(str).trim().replace(',', '.');
+  if(!/^\d{1,3}(\.\d{1,2})?$/.test(str)) return null;
+  const v=parseFloat(str);
+  return (v>=20 && v<=300) ? v : null;
+}
+function $(id){ return document.getElementById(id); }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2000); }
+
+/* =========================================================
+   4. 계산
+   ========================================================= */
+function getStart(){
+  const first = records[0];
+  return {
+    weight: settings.startWeight != null ? settings.startWeight : (first ? first.weight : null),
+    date:   settings.startDate || (first ? first.date : todayKey())
+  };
+}
+function prevRecord(date){           // date 이전의 가장 최근 기록
+  let p=null; for(const r of records){ if(r.date<date) p=r; else break; } return p;
+}
+function recordOf(date){ return records.find(r=>r.date===date) || null; }
+
+// 최근 N일 기록의 선형회귀 기울기 (kg/일)
+function trendSlope(days){
+  const last = records[records.length-1]; if(!last) return null;
+  const from = addDays(last.date, -(days-1));
+  const pts = records.filter(r=>r.date>=from).map(r=>({x:daysBetween(from,r.date), y:r.weight}));
+  if(pts.length<3) return null;
+  const span = pts[pts.length-1].x - pts[0].x; if(span<4) return null;
+  const n=pts.length, sx=pts.reduce((a,p)=>a+p.x,0), sy=pts.reduce((a,p)=>a+p.y,0);
+  const sxx=pts.reduce((a,p)=>a+p.x*p.x,0), sxy=pts.reduce((a,p)=>a+p.x*p.y,0);
+  const den = n*sxx - sx*sx; if(!den) return null;
+  return (n*sxy - sx*sy)/den;
+}
+function streak(){                    // 오늘(또는 어제)까지 연속 기록 일수
+  const set = new Set(records.map(r=>r.date));
+  let k = todayKey();
+  if(!set.has(k)) k = addDays(k,-1);
+  let c=0; while(set.has(k)){ c++; k=addDays(k,-1); }
+  return c;
+}
+function plannedWeightOn(date){
+  const s=getStart(); if(s.weight==null) return null;
+  const total = daysBetween(s.date, settings.goalDate);
+  if(total<=0) return settings.goalWeight;
+  const el = Math.min(Math.max(daysBetween(s.date, date),0), total);
+  return s.weight - (s.weight - settings.goalWeight) * (el/total);
+}
+
+/* =========================================================
+   5. 렌더링
+   ========================================================= */
+function renderAll(){
+  renderHeader(); renderSummary(); renderVerdict(); renderChart(); renderCalendar(); renderRecent(); syncForm();
+}
+
+function renderHeader(){
+  const d = daysBetween(todayKey(), settings.goalDate);
+  $('dday').textContent = d>0 ? 'D-'+d : d===0 ? 'D-DAY' : 'D+'+(-d);
+}
+
+function renderSummary(){
+  const s = getStart(), goal = settings.goalWeight;
+  const cur = records.length ? records[records.length-1].weight : null;
+  $('goalText').textContent = '목표 '+fmtW(goal)+'kg';
+  $('goalLbl').textContent = '목표 '+fmtW(goal)+'kg';
+  $('startLbl').textContent = s.weight!=null ? '시작 '+fmtW(s.weight)+'kg' : '시작 -';
+
+  if(cur==null){
+    $('pct').innerHTML='0.0<small>%</small>'; $('barFill').style.width='0%';
+    ['curW','fromStart','toGoal'].forEach(id=>$(id).textContent='-'); return;
+  }
+  let pct = 0;
+  if(s.weight > goal) pct = (s.weight - cur)/(s.weight - goal)*100;
+  else if(cur <= goal) pct = 100;
+  const pctShown = Math.max(0, pct);
+  $('pct').innerHTML = pctShown.toFixed(1)+'<small>%</small>';
+  $('barFill').style.width = Math.min(100,pctShown)+'%';
+
+  $('curW').innerHTML = fmtW(cur)+'<small>kg</small>';
+  const diff = r2(cur - s.weight);
+  $('fromStart').className = 'v '+(diff<0?'down':diff>0?'up':'flat');
+  $('fromStart').innerHTML = fmtDiff(diff)+'<small>kg</small>';
+  const left = r2(cur - goal);
+  if(left<=0){ $('toGoal').className='v down'; $('toGoal').innerHTML='달성 🎉'; }
+  else { $('toGoal').className='v'; $('toGoal').innerHTML = fmtW(left)+'<small>kg</small>'; }
+}
+
+function renderVerdict(){
+  const E=$('vEmoji'), T=$('vTitle'), M=$('vMsg'), I=$('insights'), tip=$('vTip');
+  I.innerHTML=''; tip.style.display='none'; tip.className='tip';
+  if(!records.length){
+    E.textContent='🌱'; T.textContent='첫 체중을 기록해보세요';
+    M.textContent='매일 같은 시간(아침 기상 직후, 화장실 다녀온 뒤)에 재면 가장 정확해요.'; return;
+  }
+  const goal=settings.goalWeight, today=todayKey();
+  const last=records[records.length-1], cur=last.weight, s=getStart();
+  const remaining=r2(cur-goal);
+  const daysLeft=daysBetween(today, settings.goalDate);
+  const planned=plannedWeightOn(last.date);
+  const gap = planned!=null ? r2(cur - planned) : 0;       // + 면 계획보다 무거움
+  const slope=trendSlope(14);                               // kg/일
+  const prev=prevRecord(last.date);
+  const change = prev ? r2(cur-prev.weight) : null;
+  const st=streak();
+
+  let emoji, title, badge, msg;
+  if(remaining<=0){
+    emoji='🏆'; title='목표 달성!'; badge=['b-good','완료'];
+    msg=`목표 ${fmtW(goal)}kg에 도달했어요. 이제부터는 유지가 진짜 실력이에요. 목표 ±1kg 안에서 지켜봐요.`;
+  } else if(daysLeft<0){
+    emoji='⏰'; title='목표 날짜가 지났어요'; badge=['b-warn','기한 경과'];
+    msg=`목표까지 ${fmtW(remaining)}kg 남았어요. 여기까지 온 것도 충분히 의미 있어요. 설정에서 새 목표 날짜를 잡아보세요.`;
+  } else if(gap<=-0.3){
+    emoji='🚀'; title='계획보다 앞서가는 중'; badge=['b-good','순항'];
+    msg=`계획 페이스보다 ${fmtW(-gap)}kg 가벼워요. 지금 리듬 그대로 가면 충분해요.`;
+  } else if(gap<0.3){
+    emoji='👍'; title='계획대로 가고 있어요'; badge=['b-ok','정상 페이스'];
+    msg=`계획 페이스와 거의 같아요. 꾸준함이 제일 강한 전략이에요.`;
+  } else if(gap<1){
+    emoji='💪'; title='조금만 분발해요'; badge=['b-warn','약간 뒤처짐'];
+    msg=`계획보다 ${fmtW(gap)}kg 무거워요. 며칠이면 충분히 따라잡을 수 있는 차이예요.`;
+  } else {
+    emoji='🔥'; title='페이스를 끌어올릴 때'; badge=['b-bad','뒤처짐'];
+    msg=`계획보다 ${fmtW(gap)}kg 무거워요. 식단 한 가지만 확실히 바꿔도 흐름이 달라져요.`;
+  }
+  // 직전 기록 대비 한 줄
+  if(change!=null && remaining>0){
+    if(change<0) msg+=` 직전 기록보다 ${fmtW(-change)}kg 빠졌어요!`;
+    else if(change>0) msg+=` 직전보다 ${fmtW(change)}kg 늘었지만, 하루 변동은 수분 영향이 커요. 흐름을 보세요.`;
+  }
+  E.textContent=emoji;
+  T.innerHTML=title+`<span class="badge ${badge[0]}">${badge[1]}</span>`;
+  M.textContent=msg;
+
+  // 인사이트
+  const cells=[];
+  if(remaining>0 && daysLeft>0){
+    const perWeek = remaining/daysLeft*7;
+    cells.push(['필요 페이스', `주 ${perWeek.toFixed(2)}kg`]);
+  }
+  if(slope!=null){
+    const wk=slope*7;
+    cells.push(['최근 2주 추세', `<span class="${wk<0?'down':wk>0?'up':'flat'}">주 ${fmtDiff(r2(wk))}kg</span>`]);
+  } else cells.push(['최근 2주 추세','기록이 더 필요해요']);
+  if(remaining>0){
+    if(slope!=null && slope<0){
+      const eta=addDays(last.date, Math.ceil(remaining/(-slope)));
+      const late = eta>settings.goalDate;
+      cells.push(['예상 도달일', `<span class="${late?'up':'down'}">${parseKey(eta).getFullYear()!==new Date().getFullYear()?parseKey(eta).getFullYear()+'. ':''}${longDate(eta)}</span>`]);
+    } else cells.push(['예상 도달일','감량 추세일 때 계산']);
+    const next=Math.ceil(cur)-1 >= goal ? Math.ceil(cur)-1 : goal;
+    cells.push(['다음 이정표', `${fmtW(next)}kg까지 ${fmtW(r2(cur-next))}kg`]);
+  }
+  cells.push(['연속 기록', st>0?`🔥 ${st}일`:'오늘부터 시작!']);
+  const min=records.reduce((a,r)=>r.weight<a.weight?r:a);
+  cells.push(['최저 체중', `${fmtW(min.weight)}kg <span style="font-size:12px;color:var(--sub)">${shortDate(min.date)}</span>`]);
+  I.innerHTML=cells.map(c=>`<div class="insight"><div class="k">${c[0]}</div><div class="v">${c[1]}</div></div>`).join('');
+
+  // 팁
+  if(last.date!==today && remaining>0){
+    tip.style.display='block'; tip.textContent='📝 오늘 체중을 아직 기록하지 않았어요. 기록하는 날이 많을수록 추세가 정확해져요.';
+  } else if(remaining>0 && daysLeft>0 && remaining/daysLeft*7>1){
+    tip.style.display='block'; tip.className='tip warn';
+    tip.textContent='⚠️ 남은 기간에 비해 필요한 감량 속도가 주 1kg을 넘어요. 무리한 감량은 요요가 오기 쉬우니 목표 날짜를 조금 늦추는 것도 방법이에요.';
+  }
+}
+
+function renderChart(){
+  const today=todayKey();
+  const canvas=$('chart');
+  if(!records.length){
+    if(chart){ chart.destroy(); chart=null; }
+    const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); return;
+  }
+  const first=records[0].date;
+  const end = records[records.length-1].date > today ? records[records.length-1].date : today;
+  let start = chartRange==='all' ? first : addDays(end, -(Number(chartRange)-1));
+  if(chartRange==='all' && daysBetween(start,end)<6) start=addDays(end,-6);
+
+  const map=new Map(records.map(r=>[r.date,r.weight]));
+  const labels=[], wData=[], avgData=[], planData=[], goalData=[], keys=[];
+  for(let k=start; k<=end; k=addDays(k,1)){
+    keys.push(k); labels.push(shortDate(k));
+    wData.push(map.has(k)?map.get(k):null);
+    const win=records.filter(r=>r.date<=k && r.date>addDays(k,-7));
+    avgData.push(win.length && k>=first ? r2(win.reduce((a,r)=>a+r.weight,0)/win.length) : null);
+    const s=getStart();
+    planData.push(k>=s.date ? r2(plannedWeightOn(k)) : null);
+    goalData.push(settings.goalWeight);
+  }
+  const ptColors=keys.map(k=>{
+    if(!map.has(k)) return '#0f9f6e';
+    const p=prevRecord(k); if(!p) return '#0f9f6e';
+    return map.get(k)<p.weight ? '#15944f' : map.get(k)>p.weight ? '#dc2f2f' : '#8a948f';
+  });
+  const many = labels.length>45;
+  const data={ labels, datasets:[
+    { label:'체중', data:wData, borderColor:'#0f9f6e', backgroundColor:'rgba(15,159,110,.10)', fill:'origin',
+      borderWidth:2.5, tension:.3, spanGaps:true, pointRadius:many?1.5:3.5, pointHoverRadius:6,
+      pointBackgroundColor:ptColors, pointBorderColor:'#fff', pointBorderWidth:1, order:1 },
+    { label:'7일 평균', data:avgData, borderColor:'#9fb3a8', borderWidth:1.5, pointRadius:0, tension:.3, spanGaps:true, order:2 },
+    { label:'계획 페이스', data:planData, borderColor:'#6a8fd6', borderWidth:1.5, borderDash:[5,4], pointRadius:0, order:3 },
+    { label:'목표', data:goalData, borderColor:'#dc2f2f', borderWidth:1.5, borderDash:[5,4], pointRadius:0, order:4 },
+  ]};
+  const vals=[...wData,...avgData,...planData].filter(v=>v!=null);
+  const lo=Math.min(...vals), hi=Math.max(...vals);
+  // 목표선이 너무 멀면 그래프가 납작해지지 않도록 범위를 체중 위주로
+  let yMin=Math.floor(lo-1), yMax=Math.ceil(hi+1);
+  if(settings.goalWeight>=yMin-3) yMin=Math.min(yMin, Math.floor(settings.goalWeight-0.5));
+  const opts={
+    responsive:true, maintainAspectRatio:false, animation:{duration:400},
+    interaction:{mode:'index', intersect:false},
+    plugins:{ legend:{display:false},
+      tooltip:{ filter:i=>i.raw!=null, callbacks:{
+        title:it=>longDate(keys[it[0].dataIndex]),
+        label:c=>` ${c.dataset.label}: ${fmtW(c.raw)}kg` } } },
+    scales:{
+      x:{ grid:{display:false}, ticks:{ color:'#8a948f', font:{size:10}, maxRotation:0, autoSkip:true, maxTicksLimit:7 } },
+      y:{ min:yMin, max:yMax, grid:{color:'#edf2ef'}, ticks:{ color:'#8a948f', font:{size:10}, callback:v=>v+'kg' } }
     }
+  };
+  if(chart){ chart.data=data; chart.options=opts; chart.update(); }
+  else chart=new Chart(canvas,{ type:'line', data, options:opts });
+}
 
-    function saveWeight() {
-        const date = document.getElementById('recordDate').value;
-        const weight = document.getElementById('currentWeight').value;
-        if (!date || !weight) return alert("날짜와 체중을 모두 입력하세요.");
-        
-        weights[date] = parseFloat(weight);
-        localStorage.setItem('weights', JSON.stringify(weights));
-        updateUI();
+function renderCalendar(){
+  $('monthLbl').textContent = viewYear+'년 '+(viewMonth+1)+'월';
+  const g=$('calGrid'); const today=todayKey();
+  let html='일월화수목금토'.split('').map((d,i)=>`<div class="dow ${i===0?'sun':i===6?'sat':''}">${d}</div>`).join('');
+  const firstDow=new Date(viewYear,viewMonth,1).getDay();
+  const last=new Date(viewYear,viewMonth+1,0).getDate();
+  for(let i=0;i<firstDow;i++) html+='<div class="day empty"></div>';
+  for(let d=1; d<=last; d++){
+    const k=toKey(new Date(viewYear,viewMonth,d));
+    const r=recordOf(k); const cls=['day'];
+    if(k===today) cls.push('today');
+    if(k===selectedDate) cls.push('selected');
+    if(k>today) cls.push('future');
+    let w='';
+    if(r){
+      cls.push('has');
+      const p=prevRecord(k); let c='flat', arrow='';
+      if(p){ const df=r2(r.weight-p.weight);
+        if(df<0){ c='down'; arrow='▼'+fmtW(-df); } else if(df>0){ c='up'; arrow='▲'+fmtW(df); } else arrow='–'; }
+      w=`<div class="w ${c}">${fmtW(r.weight)}${arrow?`<small>${arrow}</small>`:''}</div>`;
     }
+    html+=`<div class="${cls.join(' ')}" data-k="${k}"><div class="n">${d}</div>${w}</div>`;
+  }
+  g.innerHTML=html;
+}
 
-    function updateUI() {
-        updateMotivation();
-        renderChart();
-        renderCalendar();
-    }
+function renderRecent(){
+  const ul=$('recentList');
+  if(!records.length){ ul.innerHTML='<li class="empty-msg">아직 기록이 없어요</li>'; return; }
+  ul.innerHTML=records.slice(-10).reverse().map(r=>{
+    const p=prevRecord(r.date); let df='';
+    if(p){ const v=r2(r.weight-p.weight); df=`<span class="df ${v<0?'down':v>0?'up':'flat'}">${v<0?'▼':v>0?'▲':''}${fmtW(Math.abs(v))}</span>`; }
+    else df='<span class="df flat">시작</span>';
+    const memo=r.memo?`<span class="memo">${escapeHtml(r.memo)}</span>`:'';
+    return `<li data-k="${r.date}"><span><span class="d">${longDate(r.date)}</span>${memo}</span><span class="r"><span class="wt">${fmtW(r.weight)}kg</span>${df}</span></li>`;
+  }).join('');
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    function updateMotivation() {
-        const msgEl = document.getElementById('motivationMsg');
-        if (!target || Object.keys(weights).length === 0) {
-            msgEl.innerText = "꾸준한 기록이 감량의 시작입니다!";
-            return;
-        }
+/* 입력폼을 선택된 날짜에 맞춤 */
+let formDirty=false;
+function syncForm(force){
+  $('inDate').value=selectedDate;
+  $('inDate').max=todayKey();
+  const r=recordOf(selectedDate);
+  if(!formDirty || force){
+    $('inWeight').value = r ? fmtW(r.weight) : '';
+    $('inMemo').value = r && r.memo ? r.memo : '';
+  }
+  $('existMsg').textContent = r ? `이 날짜에 ${fmtW(r.weight)}kg이 기록되어 있어요. 저장하면 수정돼요.` : '';
+  $('delBtn').style.display = r ? 'block' : 'none';
+  $('saveBtn').textContent = r ? '수정' : '저장';
+}
+function selectDate(k, scroll){
+  selectedDate=k; formDirty=false; syncForm(true); renderCalendar();
+  if(scroll) $('formCard').scrollIntoView({behavior:'smooth', block:'start'});
+}
 
-        const sortedDates = Object.keys(weights).sort();
-        const latestWeight = weights[sortedDates[sortedDates.length - 1]];
-        const diff = (latestWeight - target).toFixed(1);
+/* =========================================================
+   6. 저장 / 삭제 (클라우드)
+   ========================================================= */
+async function saveRecord(){
+  const date=$('inDate').value;
+  const w=parseWeight($('inWeight').value);
+  if(!date){ toast('날짜를 선택해주세요'); return; }
+  if(date>todayKey()){ toast('미래 날짜는 기록할 수 없어요'); return; }
+  if(w==null){ toast('체중은 20~300 사이, 소수점 둘째 자리까지 입력해주세요'); $('inWeight').focus(); return; }
+  const memo=$('inMemo').value.trim();
+  const existed=!!recordOf(date);
+  $('saveBtn').disabled=true;
+  try{
+    // 날짜를 문서 ID로 사용 → 하루에 한 기록만 (같은 날 다시 저장하면 수정)
+    await db.collection(COL_WEIGHTS).doc(date).set({
+      date, weight:w, memo,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge:true });
+    formDirty=false;
+    toast(existed?'수정했어요':'저장했어요 ✨');
+  }catch(e){ console.error(e); toast('저장 실패: '+(e.code||e.message)); }
+  finally{ $('saveBtn').disabled=false; }
+}
+async function deleteRecord(){
+  const date=$('inDate').value;
+  if(!recordOf(date)) return;
+  if(!confirm(longDate(date)+' 기록을 삭제할까요?')) return;
+  try{ await db.collection(COL_WEIGHTS).doc(date).delete(); formDirty=false; toast('삭제했어요'); }
+  catch(e){ console.error(e); toast('삭제 실패: '+(e.code||e.message)); }
+}
 
-        if (diff <= 0) {
-            msgEl.innerText = `🎉 목표 달성! 현재 ${latestWeight}kg. 유지에 집중하세요!`;
-            msgEl.style.color = '#27ae60';
-        } else if (diff <= 2) {
-            msgEl.innerText = `🔥 고지가 눈앞입니다! 목표까지 단 ${diff}kg 남았어요!`;
-            msgEl.style.color = '#e67e22';
-        } else {
-            msgEl.innerText = `💪 목표까지 ${diff}kg 남았습니다. 오늘도 파이팅!`;
-            msgEl.style.color = '#e74c3c';
-        }
-    }
+/* =========================================================
+   7. 설정
+   ========================================================= */
+function openSettings(){
+  $('sGoal').value=fmtW(settings.goalWeight);
+  $('sGoalDate').value=settings.goalDate;
+  $('sStart').value=settings.startWeight!=null?fmtW(settings.startWeight):'';
+  $('sStartDate').value=settings.startDate||'';
+  $('settingsModal').classList.add('show');
+}
+function closeSettings(){ $('settingsModal').classList.remove('show'); }
+async function saveSettings(){
+  const goal=parseWeight($('sGoal').value);
+  if(goal==null){ toast('목표 체중을 올바르게 입력해주세요'); return; }
+  const goalDate=$('sGoalDate').value;
+  if(!goalDate){ toast('목표 날짜를 선택해주세요'); return; }
+  const startStr=$('sStart').value.trim();
+  const start = startStr==='' ? null : parseWeight(startStr);
+  if(startStr!=='' && start==null){ toast('시작 체중을 올바르게 입력해주세요'); return; }
+  const startDate=$('sStartDate').value||null;
+  if(startDate && startDate>=goalDate){ toast('시작 날짜는 목표 날짜보다 앞이어야 해요'); return; }
+  try{
+    await SETTINGS_DOC.set({ goalWeight:goal, goalDate, startWeight:start, startDate }, { merge:true });
+    closeSettings(); toast('목표를 저장했어요');
+  }catch(e){ console.error(e); toast('저장 실패: '+(e.code||e.message)); }
+}
 
-    function renderChart() {
-        const sortedDates = Object.keys(weights).sort().slice(-14); // 최근 14일
-        const dataPoints = sortedDates.map(date => weights[date]);
+/* =========================================================
+   8. 실시간 동기화 (onSnapshot)
+   ========================================================= */
+function setSync(state, text){ const el=$('sync'); el.className='sync '+state; el.querySelector('span').textContent=text; }
+function showError(e){
+  const b=$('errorBanner'); b.style.display='block';
+  b.innerHTML = e && e.code==='permission-denied'
+    ? '⚠️ 데이터베이스 접근이 거부됐어요. Firebase 콘솔 → Firestore → <b>규칙</b>에서 읽기/쓰기 허용 규칙을 확인해주세요.'
+    : '⚠️ 데이터를 불러오지 못했어요: '+escapeHtml(e && (e.code||e.message) || '알 수 없는 오류');
+  setSync('err','연결 오류');
+}
 
-        const ctx = document.getElementById('weightChart').getContext('2d');
-        if (chartInstance) chartInstance.destroy();
+db.collection(COL_WEIGHTS).orderBy('date').onSnapshot({ includeMetadataChanges:true }, snap=>{
+  records = snap.docs.map(d=>d.data())
+    .filter(r=>r && typeof r.weight==='number' && r.date)
+    .map(r=>({ date:r.date, weight:r.weight, memo:r.memo||'' }));
+  $('errorBanner').style.display='none';
+  if(snap.metadata.fromCache) setSync('off','오프라인 · 연결되면 자동 저장돼요');
+  else if(snap.metadata.hasPendingWrites) setSync('on','저장 중…');
+  else setSync('on','실시간 동기화 중');
+  renderAll();
+}, showError);
 
-        chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: sortedDates.map(d => d.slice(5)), // MM-DD 포맷
-                datasets: [{
-                    label: '체중 (kg)',
-                    data: dataPoints,
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                    tension: 0.3,
-                    fill: true,
-                    pointBackgroundColor: '#2980b9'
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
+SETTINGS_DOC.onSnapshot(doc=>{
+  const d = doc.exists ? doc.data() : {};
+  settings = {
+    goalWeight: typeof d.goalWeight==='number' ? d.goalWeight : DEFAULTS.goalWeight,
+    goalDate:   d.goalDate || DEFAULTS.goalDate,
+    startWeight: typeof d.startWeight==='number' ? d.startWeight : null,
+    startDate:  d.startDate || null
+  };
+  renderAll();
+}, showError);
 
-    function changeMonth(offset) {
-        currentDisplayDate.setMonth(currentDisplayDate.getMonth() + offset);
-        renderCalendar();
-    }
+/* =========================================================
+   9. 이벤트
+   ========================================================= */
+$('saveBtn').onclick=saveRecord;
+$('delBtn').onclick=deleteRecord;
+$('inWeight').addEventListener('input',()=>formDirty=true);
+$('inMemo').addEventListener('input',()=>formDirty=true);
+$('inWeight').addEventListener('keydown',e=>{ if(e.key==='Enter') saveRecord(); });
+$('inDate').addEventListener('change',()=>{
+  const k=$('inDate').value; if(!k) return;
+  const d=parseKey(k); viewYear=d.getFullYear(); viewMonth=d.getMonth();
+  selectDate(k,false);
+});
+$('calGrid').addEventListener('click',e=>{
+  const c=e.target.closest('.day[data-k]'); if(!c || c.classList.contains('future')) return;
+  selectDate(c.dataset.k,true);
+});
+$('recentList').addEventListener('click',e=>{
+  const li=e.target.closest('li[data-k]'); if(!li) return;
+  const d=parseKey(li.dataset.k); viewYear=d.getFullYear(); viewMonth=d.getMonth();
+  selectDate(li.dataset.k,true);
+});
+$('prevMonth').onclick=()=>{ viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); };
+$('nextMonth').onclick=()=>{ viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); };
+$('rangeSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  chartRange=b.dataset.r;
+  [...$('rangeSeg').children].forEach(x=>x.classList.toggle('active',x===b));
+  renderChart();
+});
+$('openSettings').onclick=openSettings;
+$('closeSettings').onclick=closeSettings;
+$('saveSettings').onclick=saveSettings;
+$('settingsModal').addEventListener('click',e=>{ if(e.target.id==='settingsModal') closeSettings(); });
+// 자정을 넘겨 앱을 켜둔 경우 날짜 갱신
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) renderAll(); });
 
-    function renderCalendar() {
-        const year = currentDisplayDate.getFullYear();
-        const month = currentDisplayDate.getMonth();
-        document.getElementById('calendarMonth').innerText = `${year}년 ${month + 1}월`;
-
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        
-        const grid = document.getElementById('calendarGrid');
-        grid.innerHTML = '';
-
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-        dayNames.forEach(day => {
-            grid.innerHTML += `<div class="day-name">${day}</div>`;
-        });
-
-        // 빈 칸 채우기
-        for (let i = 0; i < firstDay; i++) {
-            grid.innerHTML += `<div class="day-cell" style="background:transparent; border:none;"></div>`;
-        }
-
-        const todayStr = new Date().toISOString().split('T')[0];
-
-        // 날짜 채우기
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const isToday = dateStr === todayStr ? 'today' : '';
-            const weightData = weights[dateStr] ? `<div class="weight-badge">${weights[dateStr]}kg</div>` : '';
-
-            grid.innerHTML += `
-                <div class="day-cell ${isToday}" onclick="document.getElementById('recordDate').value='${dateStr}'" style="cursor:pointer;">
-                    <span style="font-size: 0.9em; color: #555;">${day}</span>
-                    ${weightData}
-                </div>
-            `;
-        }
-    }
-
-    // 초기 실행
-    updateUI();
+renderAll();
 </script>
 </body>
 </html>
