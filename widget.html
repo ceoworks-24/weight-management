@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>체중 위젯</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{ --bg:#ffffff; --text:#17201b; --sub:#6b7770; --line:#e9efeb; --primary:#0f9f6e; --down:#15944f; --up:#dc2f2f; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg)}
+  body{font-family:Pretendard,-apple-system,"Apple SD Gothic Neo",sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;
+       display:flex;flex-direction:column;padding:14px 16px 10px;overflow:hidden}
+  .top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+  .cur .k{font-size:12px;color:var(--sub);font-weight:600}
+  .cur .v{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1.05}
+  .cur .v small{font-size:14px;font-weight:700;color:var(--sub);margin-left:2px}
+  .cur .d{font-size:13px;font-weight:700;margin-top:2px}
+  .right{text-align:right}
+  .pct{font-size:22px;font-weight:800;color:var(--primary);letter-spacing:-.5px;line-height:1.1}
+  .pct small{font-size:12px}
+  .goal{font-size:12px;color:var(--sub);font-weight:600;margin-top:2px}
+  .bar{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin:10px 0 6px}
+  .bar div{height:100%;background:linear-gradient(90deg,#34d399,var(--primary));border-radius:9px}
+  .chart{flex:1;min-height:60px;position:relative}
+  svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .foot{display:flex;justify-content:space-between;font-size:10.5px;color:#9aa49e;margin-top:2px}
+  .msg{margin:auto;font-size:14px;color:var(--sub);text-align:center}
+  .down{color:var(--down)} .up{color:var(--up)} .flat{color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="msg" id="msg">불러오는 중…</div>
+
+<script>
+/* 체중 위젯 — 바탕화면 위젯 앱이 이 페이지를 캡처해서 보여줌
+   주소 뒤에 ?days=30 처럼 붙이면 그래프 기간을 바꿀 수 있음 (기본 14일) */
+firebase.initializeApp({
+  apiKey: "AIzaSyD5XW_I65ZjWFkiFrxWCQQKctA2Oht6BQE",
+  authDomain: "weight-management-19969.firebaseapp.com",
+  projectId: "weight-management-19969",
+  storageBucket: "weight-management-19969.firebasestorage.app",
+  messagingSenderId: "1077689440077",
+  appId: "1:1077689440077:web:8b894dfe41d312dbc24904"
+});
+const db = firebase.firestore();
+const DAYS = Math.max(7, Math.min(120, parseInt(new URLSearchParams(location.search).get('days'))||14));
+
+const pad=n=>String(n).padStart(2,'0');
+const toKey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseKey=k=>{ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays=(k,n)=>{ const d=parseKey(k); d.setDate(d.getDate()+n); return toKey(d); };
+const days=(a,b)=>Math.round((parseKey(b)-parseKey(a))/864e5);
+const r2=v=>Math.round(v*100)/100;
+const fmt=w=>String(r2(w));   // 72 → '72', 76.25 → '76.25'
+const sd=k=>{ const d=parseKey(k); return (d.getMonth()+1)+'/'+d.getDate(); };
+
+function render(records, st){
+  const goal = typeof st.goalWeight==='number' ? st.goalWeight : 72;
+  if(!records.length){ document.getElementById('msg').textContent='아직 체중 기록이 없어요'; return; }
+  const first=records[0], last=records[records.length-1], prev=records[records.length-2];
+  const start = typeof st.startWeight==='number' ? st.startWeight : first.weight;
+  const pct = start>goal ? Math.max(0,(start-last.weight)/(start-goal)*100) : (last.weight<=goal?100:0);
+  const ch = prev ? r2(last.weight-prev.weight) : 0;
+  const left = r2(last.weight-goal);
+
+  // 그래프 데이터: 최근 DAYS일 (첫 기록 이전은 잘라냄)
+  const today=toKey(new Date()), end = last.date>today ? last.date : today;
+  let from = addDays(end, -(DAYS-1)); if(from<first.date) from=first.date;
+  if(days(from,end)<3) from=addDays(end,-3);
+  const pts = records.filter(r=>r.date>=from);
+  const total = Math.max(1, days(from,end));
+
+  document.body.innerHTML = `
+    <div class="top">
+      <div class="cur"><div class="k">현재 체중 · ${sd(last.date)}</div>
+        <div class="v">${fmt(last.weight)}<small>kg</small></div>
+        <div class="d ${ch<0?'down':ch>0?'up':'flat'}">${prev ? (ch<0?'▼ ':ch>0?'▲ ':'– ')+fmt(Math.abs(ch))+'kg' : '첫 기록'}</div></div>
+      <div class="right"><div class="goal" style="margin:0 0 1px">달성률</div><div class="pct">${pct.toFixed(1)}<small>%</small></div>
+        <div class="goal">${left>0 ? '목표 '+fmt(goal)+'kg까지 '+fmt(left)+'kg' : '목표 달성 🎉'}</div></div>
+    </div>
+    <div class="bar"><div style="width:${Math.min(100,pct)}%"></div></div>
+    <div class="chart" id="chart"></div>
+    <div class="foot"><span>${sd(from)}</span><span>최근 ${DAYS}일</span><span>${sd(end)}</span></div>`;
+
+  // SVG 꺾은선 (캡처 방식 위젯이라 애니메이션 없이 바로 그림)
+  const box=document.getElementById('chart'), W=box.clientWidth, H=box.clientHeight;
+  const vals=pts.map(p=>p.weight);
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  const goalNear = goal>=lo-2; if(goalNear) lo=Math.min(lo,goal);
+  const span=Math.max(hi-lo,1), padv=span*0.2; lo-=padv; hi+=padv;
+  const X=k=>6+(W-12)*days(from,k)/total, Y=v=>8+(H-22)*(1-(v-lo)/(hi-lo));
+  const path=pts.map((p,i)=>(i?'L':'M')+X(p.date).toFixed(1)+','+Y(p.weight).toFixed(1)).join(' ');
+  const area=pts.length>1 ? `${path} L${X(pts[pts.length-1].date).toFixed(1)},${H} L${X(pts[0].date).toFixed(1)},${H} Z` : '';
+  const dots=pts.map((p,i)=>{
+    const pv=i?pts[i-1].weight:null, c = pv==null?'#0f9f6e' : p.weight<pv?'#15944f' : p.weight>pv?'#dc2f2f':'#8a948f';
+    return `<circle cx="${X(p.date).toFixed(1)}" cy="${Y(p.weight).toFixed(1)}" r="${pts.length>20?2.5:3.5}" fill="${c}" stroke="#fff" stroke-width="1.5"/>`;
+  }).join('');
+  const lx=Math.min(Math.max(X(last.date),24),W-24), ly=Y(last.weight);
+  const labelBelow = prev && last.weight<prev.weight;
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f9f6e" stop-opacity=".16"/><stop offset="1" stop-color="#0f9f6e" stop-opacity="0"/></linearGradient></defs>
+    ${goalNear?`<line x1="0" x2="${W}" y1="${Y(goal).toFixed(1)}" y2="${Y(goal).toFixed(1)}" stroke="#dc2f2f" stroke-width="1.2" stroke-dasharray="4 4"/>
+      <text x="${W-2}" y="${(Y(goal)-4).toFixed(1)}" text-anchor="end" font-size="10" fill="#dc2f2f" font-weight="700">목표 ${fmt(goal)}</text>`:''}
+    ${area?`<path d="${area}" fill="url(#g)"/>`:''}
+    <path d="${path}" fill="none" stroke="#0f9f6e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+    <text x="${lx}" y="${(labelBelow?ly+16:ly-8).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="800" fill="#17201b">${fmt(last.weight)}</text>
+  </svg>`;
+}
+
+Promise.all([
+  db.collection('weights').orderBy('date').get(),
+  db.collection('settings').doc('main').get()
+]).then(([snap, sdoc])=>{
+  const recs=snap.docs.map(d=>d.data()).filter(r=>r && typeof r.weight==='number' && r.date);
+  render(recs, sdoc.exists ? sdoc.data() : {});
+}).catch(e=>{ document.getElementById('msg').textContent='불러오기 실패: '+(e.code||e.message); });
+</script>
+</body>
+</html>
