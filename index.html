@@ -1498,10 +1498,9 @@ function entryHtml(en,i){
       <input class="r" inputmode="numeric" value="${s.r==null?'':esc(s.r)}" placeholder="횟수">
       <span class="u">회</span>
       <button class="chk" data-act="chk" aria-label="세트 완료">✓</button></div>`).join('')}
-    ${allDone ? (()=>{ const rec=recommendPlan(en); return `<div class="diff">
+    ${allDone ? `<div class="diff">
       <div class="diff-q">다음엔 어떻게 할까요?</div>
-      <div class="diff-btns">${['up','hold','down'].map(v=>`<button data-act="diff" data-v="${v}" class="${en.nextPlan===v?'on':''}">${PLAN_LABEL[v]}${v===rec?'<small>추천</small>':''}</button>`).join('')}</div>
-      ${en.nextPlan?'':`<div class="diff-h">선택하지 않으면 추천(${PLAN_LABEL[rec]})대로 판단해요</div>`}</div>`; })() : ''}
+      <div class="diff-btns">${['up','hold','down'].map(v=>`<button data-act="diff" data-v="${v}" class="${en.nextPlan===v?'on':''}">${PLAN_LABEL[v]}</button>`).join('')}</div></div>` : ''}
     <div class="ex-foot"><button class="mini" data-act="addSet">+ 세트</button>${en.sets.length>1?'<button class="mini" data-act="rmSet">− 세트</button>':''}</div>
   </div>`;
 }
