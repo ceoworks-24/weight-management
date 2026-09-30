@@ -258,6 +258,15 @@
   .chk-line input{width:20px;height:20px;margin-top:2px;accent-color:var(--primary);flex:0 0 auto}
   .chk-line span{font-size:12px;color:var(--sub);line-height:1.5}
   .chk-line span b{font-size:14px;color:var(--text)}
+  .set-row input::placeholder{font-size:12.5px;font-weight:600;color:#a0a8a3}
+  .diff{margin-top:10px;background:#f6f8ff;border:1px solid #dfe7fb;border-radius:12px;padding:10px}
+  .diff-q{font-size:12.5px;font-weight:700;color:#2b3a5c;margin-bottom:8px}
+  .diff-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .diff-btns button{height:40px;border:1.5px solid #dfe7fb;background:#fff;border-radius:10px;font-size:13px;font-weight:700;color:#3a463f;font-family:inherit}
+  .diff-btns button[data-v="easy"].on{background:#dcf5e8;border-color:#9fdcbc;color:var(--down)}
+  .diff-btns button[data-v="normal"].on{background:#e6effc;border-color:#a9c3ef;color:#2b63c4}
+  .diff-btns button[data-v="hard"].on{background:#fde3e3;border-color:#f1a9a9;color:var(--up)}
+  .diff-h{font-size:11.5px;color:var(--sub);margin-top:6px}
   .mini.swap{margin-top:6px;margin-right:4px;background:#eef3fb;color:#2b63c4}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
   .field select{width:100%;height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;font-size:16px;background:#fff;font-family:inherit;color:var(--text)}
@@ -1169,7 +1178,7 @@ function historyOf(exId){
       if(!sets.length) continue;
       const assist=isAssist(e.exId, e);
       if(!histCache.has(e.exId)) histCache.set(e.exId,[]);
-      histCache.get(e.exId).push({ date:w.date, wid:w.id, name:e.name, kind:e.kind, assist, sets,
+      histCache.get(e.exId).push({ date:w.date, wid:w.id, name:e.name, kind:e.kind, assist, difficulty:e.difficulty||null, sets,
                                     m:metrics(effSets(sets, assist, w.date)) });
     }
   }
@@ -1206,7 +1215,26 @@ function exStatus(exId){
   return t==='up' ? { k:'up', t:'📈 성장' } : t==='down' ? { k:'down', t:'📉 하락' } : { k:'same', t:'➡️ 유지' };
 }
 
-/* 다음 목표 추천 (목표 횟수 범위 방식) */
+/* 체감 난이도 (최대 횟수를 채운 날에만 기록) */
+const DIFF_LABEL = { easy:'여유 있었음', normal:'적당했음', hard:'힘들었음' };
+const HARD_LIMIT = 2;   // '힘들었음'으로 최대 횟수 달성이 같은 무게에서 연속 이 횟수가 되면 증량으로 전환
+
+// 기록 1회의 기준 무게와 최대 횟수 달성 여부
+function topInfo(x, A, n, hi){
+  const ws=x.sets.map(s=>s.w), base = A ? Math.min(...ws) : Math.max(...ws);
+  const work=x.sets.filter(s=>s.w===base);
+  return { base, work, hit: work.length>=n && work.slice(0,n).every(s=>s.r>=hi) };
+}
+// 진행 중 운동(entry)이 모든 세트 완료 + 모든 세트 최대 횟수 달성인지
+function entryHitMax(en){
+  const ex=exercises.find(x=>x.id===en.exId);
+  const n=Math.max(1, ex&&ex.sets||3), hi=(ex&&ex.repMax)||12;
+  const done=en.sets.filter(s=>s.done);
+  return done.length===en.sets.length && done.length>=n && done.every(s=>(num(s.r)||0)>=hi);
+}
+
+/* 다음 목표 판단 (목표 횟수 범위 방식)
+   - 무게는 자동으로 채우지 않음. w 값은 참고용(미리보기·상세 화면)으로만 사용 */
 function suggest(ex){
   const h=historyOf(ex.id), A=!!ex.assist;
   const n=Math.max(1, ex.sets||3), lo=ex.repMin||8, hi=Math.max(lo, ex.repMax||12), inc=num(ex.inc)||0;
@@ -1214,37 +1242,48 @@ function suggest(ex){
   if(!h.length){
     const w = ex.startW!=null ? ex.startW : '';
     return { kind:'new', label:'첫 기록', w, reps:Array(n).fill(lo),
-      goal: w!=='' ? `${W(w)||'맨몸'}로 ${lo}~${hi}회 × ${n}세트`
-                   : A ? `${lo}~${hi}회를 할 수 있는 보조 무게를 찾아서 기록해요` : `${lo}~${hi}회를 할 수 있는 무게를 찾아서 기록해요` };
+      goal: w!=='' ? `첫 기록 · 시작 무게 참고 ${W(w)||'맨몸'}, ${lo}~${hi}회 × ${n}세트`
+                   : A ? `첫 기록 · ${lo}~${hi}회를 할 수 있는 보조 무게를 찾아서 기록해요` : `첫 기록 · ${lo}~${hi}회를 할 수 있는 무게를 찾아서 기록해요` };
   }
   const last=h[h.length-1];
-  // 기준 무게: 일반 운동은 가장 무거운 무게, 어시스트는 가장 적은 보조 무게
-  const ws=last.sets.map(s=>s.w);
-  const base = A ? Math.min(...ws) : Math.max(...ws);
-  const work=last.sets.filter(s=>s.w===base);
+  const { base, work, hit:hitTop } = topInfo(last, A, n, hi);
   const st=stallInfo(h);
   const canLoad = A ? base>0 && inc>0 : inc>0;          // 무게로 과부하를 줄 수 있는가 (어시스트 0kg이면 횟수로)
-  if(st.stalled && inc>0 && last.kind!=='deload' && (A || base>0)){
+  const incTxt = A ? `보조 −${fmtK(inc)}kg` : `+${fmtK(inc)}kg`;
+
+  // 정체 → 디로드 (최대 횟수를 채운 날은 제외)
+  if(st.stalled && !hitTop && inc>0 && last.kind!=='deload' && (A || base>0)){
     const w = A ? rw(base+inc) : Math.max(0, roundTo(base*0.9, inc));
     return { kind:'deload', label:'디로드', w, reps:Array(n).fill(hi),
-      goal: A ? `${st.since}회째 제자리예요. 보조를 ${fmtK(w)}kg로 살짝 늘려 ${hi}회씩 다시 쌓아 올려요`
-              : `${st.since}회째 제자리예요. ${fmtK(w)}kg(약 -10%)로 낮춰 ${hi}회씩 다시 쌓아 올려요` };
+      goal: A ? `디로드 판단 · ${st.since}회째 제자리예요. 보조를 조금 늘려(참고 ${fmtK(w)}kg) ${hi}회씩 다시 쌓아 올려요`
+              : `디로드 판단 · ${st.since}회째 제자리예요. 약 10% 낮춰(참고 ${fmtK(w)}kg) ${hi}회씩 다시 쌓아 올려요` };
   }
-  const hitTop = work.length>=n && work.slice(0,n).every(s=>s.r>=hi);
+
   if(hitTop && canLoad){
+    // 직전이 '힘들었음'이면 같은 무게에서 연속 몇 번째인지 셈
+    let hard=0;
+    for(let i=h.length-1;i>=0;i--){
+      const t=topInfo(h[i], A, n, hi);
+      if(t.hit && t.base===base && h[i].difficulty==='hard') hard++; else break;
+    }
+    if(hard>0 && hard<HARD_LIMIT){
+      return { kind:'hold', label:'유지', w:base, reps:Array(n).fill(hi),
+        goal:`유지 판단 · 최대 ${hi}회는 채웠지만 힘들었어요. 같은 무게로 ${hi}회를 한 번 더 편하게 만들어요 (힘듦 ${hard}/${HARD_LIMIT}회)` };
+    }
+    const note = hard>=HARD_LIMIT ? `힘들었음이 ${hard}회 연속이지만 계속 해냈어요. ` : '';
     if(A){
       const w=Math.max(0, rw(base-inc));
       return { kind:'up', label: w===0?'맨몸 도전':'보조↓', w, reps:Array(n).fill(lo),
-        goal: w===0 ? `지난번 ${hi}회 × ${n}세트 달성! 이제 보조 없이 맨몸으로 도전해요 🎉`
-                    : `지난번 ${hi}회 × ${n}세트 달성! 보조를 ${fmtK(w)}kg로 줄여서 ${lo}회 이상` };
+        goal: w===0 ? `증량 판단 · ${note}이제 보조 없이 맨몸으로 도전해요 🎉`
+                    : `증량 판단 · ${note}보조를 줄여서(${incTxt}, 참고 ${fmtK(w)}kg) ${lo}회 이상` };
     }
     const w=rw(base+inc);
     return { kind:'up', label:'증량', w, reps:Array(n).fill(lo),
-      goal:`지난번 ${hi}회 × ${n}세트 달성! ${fmtK(w)}kg로 올려서 ${lo}회 이상` };
+      goal:`증량 판단 · ${note}무게를 올려서(${incTxt}, 참고 ${fmtK(w)}kg) ${lo}회 이상` };
   }
   if(work.length && work[0].r<lo && canLoad){
     return { kind:'hold', label:'유지', w:base, reps:Array(n).fill(lo),
-      goal:`${W(base)?W(base)+' ':''}그대로, 먼저 모든 세트 ${lo}회 채우기` };
+      goal:`유지 판단 · ${W(base)?W(base)+' ':''}그대로, 먼저 모든 세트 ${lo}회 채우기` };
   }
   const cap = canLoad ? hi : 999;
   const reps = Array.from({length:n}, (_,i)=>{
@@ -1252,7 +1291,7 @@ function suggest(ex){
     return Math.min(cap, Math.max(lo, b+1));
   });
   return { kind:'reps', label:'횟수+', w: (A || base>0) ? base : '', reps,
-    goal:`${W(base)?W(base)+' ':''}그대로, 세트당 1회씩 더 (${reps.join('·')}회)` };
+    goal:`횟수 늘리기 판단 · ${W(base)?W(base)+' ':''}그대로, 세트당 1회씩 더 (${reps.join('·')}회)` };
 }
 
 /* =========================================================
@@ -1413,27 +1452,30 @@ function renderSessionList(){
 function makeEntry(ex){
   const s=suggest(ex);
   return { exId:ex.id, name:ex.name, assist:!!ex.assist, kind:s.kind, label:s.label, goal:s.goal,
-           sets:s.reps.map(r=>({ w:s.w===''||s.w==null?'':s.w, r, done:false })) };
+           sets:s.reps.map(r=>({ w:'', r, done:false })) };   // 무게는 직접 입력
 }
 function entryHtml(en,i){
   const h=historyOf(en.exId), last=h[h.length-1];
   const A=isAssist(en.exId,en);
-  const lastTxt = last ? `지난번 ${shortDate(last.date)} · ${setsText(last.sets, last.assist)}` : '이전 기록 없음';
+  const lastTxt = last ? `지난번 ${shortDate(last.date)} · ${setsText(last.sets, last.assist)}${last.difficulty?` (${DIFF_LABEL[last.difficulty]})`:''}` : '이전 기록 없음';
   const allDone = en.sets.length && en.sets.every(s=>s.done);
   return `<div class="ex ${allDone?'complete':''}" data-i="${i}">
     <div class="ex-head"><div><b>${esc(en.name)}</b><span class="tag k-${en.kind}">${en.label}</span></div>
       <button class="ex-x" data-act="rmEx" aria-label="이 운동 빼기">×</button></div>
-    <div class="ex-last">${lastTxt}</div>
-    <div class="ex-goal">🎯 ${esc(en.goal)}</div>
+    <div class="ex-goal">📋 ${lastTxt}<br>🎯 ${esc(en.goal)}</div>
     ${swapGroup(en.exId).filter(x=>x.id!==en.exId && !active.entries.some(e=>e.exId===x.id))
         .map(x=>`<button class="mini swap" data-act="swap" data-to="${x.id}">↔ ${esc(x.name)}(으)로 바꾸기</button>`).join('')}
     ${en.sets.map((s,j)=>`<div class="set-row ${s.done?'done':''}" data-j="${j}">
       <span class="sn">${j+1}</span>
-      <input class="w" inputmode="decimal" value="${s.w==null?'':esc(s.w)}" placeholder="${A?'보조':'무게'}">
+      <input class="w" inputmode="decimal" value="${s.w==null?'':esc(s.w)}" placeholder="${A?'보조':'무게(한쪽)'}">
       <span class="u">${A?'보조kg':'kg'} ×</span>
       <input class="r" inputmode="numeric" value="${s.r==null?'':esc(s.r)}" placeholder="횟수">
       <span class="u">회</span>
       <button class="chk" data-act="chk" aria-label="세트 완료">✓</button></div>`).join('')}
+    ${allDone && entryHitMax(en) ? `<div class="diff">
+      <div class="diff-q">목표 횟수 달성! 오늘 체감은 어땠나요?</div>
+      <div class="diff-btns">${['easy','normal','hard'].map(v=>`<button data-act="diff" data-v="${v}" class="${en.difficulty===v?'on':''}">${DIFF_LABEL[v]}</button>`).join('')}</div>
+      ${en.difficulty?'':'<div class="diff-h">선택하지 않으면 \'적당했음\'으로 저장돼요</div>'}</div>` : ''}
     <div class="ex-foot"><button class="mini" data-act="addSet">+ 세트</button>${en.sets.length>1?'<button class="mini" data-act="rmSet">− 세트</button>':''}</div>
   </div>`;
 }
@@ -1523,8 +1565,15 @@ $('sessionArea').addEventListener('click', e=>{
       const moreLeft = active.entries.some(x=>x.sets.some(y=>!y.done));
       if(moreLeft) startRest();
     } else s.done=false;
+    const wasHit = !!exEl.querySelector('.diff');
     row.classList.toggle('done', s.done);
     refreshEntryState(exEl); saveActive(true);
+    if(wasHit !== entryHitMax(en)) renderSession();   // 난이도 버튼 표시/숨김
+  }
+  else if(act==='diff'){
+    en.difficulty=b.dataset.v; saveActive(true);
+    exEl.querySelectorAll('[data-act="diff"]').forEach(x=>x.classList.toggle('on', x===b));
+    const hint=exEl.querySelector('.diff-h'); if(hint) hint.remove();
   }
   else if(act==='swap'){
     const to=exercises.find(x=>x.id===b.dataset.to); if(!to) return;
@@ -1576,7 +1625,8 @@ function finishSession(){
   if(!confirm(left ? `체크하지 않은 ${left}세트는 기록되지 않아요. 운동을 완료할까요?` : '운동을 완료할까요?')) return;
   const sm=buildSummary(active);
   const { id, ...data }=active;
-  data.entries=data.entries.map(e=>({ ...e, sets:e.sets.filter(s=>s.done).map(s=>({ w:num(s.w)||0, r:Math.round(num(s.r)), done:true })) }))
+  data.entries=data.entries.map(e=>({ ...e, difficulty: entryHitMax(e) ? (e.difficulty||'normal') : null,
+                                        sets:e.sets.filter(s=>s.done).map(s=>({ w:num(s.w)||0, r:Math.round(num(s.r)), done:true })) }))
                            .filter(e=>e.sets.length);
   data.status='done'; data.finishedAt=Date.now(); data.volume=Math.round(sm.vol);
   data.result={ ups:sm.ups, comps:sm.comps, prs:sm.prs };
@@ -1664,7 +1714,7 @@ function openExDetail(exId){
     <div class="stat"><div class="k">다음 목표</div><div class="v" style="font-size:15px">${next}</div></div>`;
   $('exLeg1').textContent = A ? '실제 부하 (체중 − 보조)' : '최고 무게';
   $('exNote').style.display = A ? '' : 'none';
-  $('exHist').innerHTML = h.length ? h.slice().reverse().map(x=>`<li><span class="d">${longDate(x.date)}</span><span>${setsText(x.sets, x.assist)}</span></li>`).join('')
+  $('exHist').innerHTML = h.length ? h.slice().reverse().map(x=>`<li><span class="d">${longDate(x.date)}</span><span>${setsText(x.sets, x.assist)}${x.difficulty?` <span class="d">(${DIFF_LABEL[x.difficulty]})</span>`:''}</span></li>`).join('')
                                    : '<li class="empty-msg" style="justify-content:center">아직 기록이 없어요</li>';
   openModal('exModal');
   const data={ labels:h.map(x=>shortDate(x.date)), datasets:[
