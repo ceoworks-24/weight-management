@@ -102,6 +102,15 @@
   .seg button{border:none;background:none;font-size:12px;font-weight:600;color:var(--sub);padding:5px 10px;border-radius:8px}
   .seg button.active{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
   .chart-box{position:relative;height:260px}
+  .goal-note{font-size:12px;color:var(--sub);text-align:right;margin-top:4px;min-height:16px}
+  .goal-note b{color:var(--up)}
+  .chart-opts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .opt-lbl{font-size:11.5px;color:var(--sub);font-weight:600;margin-right:2px}
+  .opt{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:5px 10px;font-size:12px;font-weight:700;color:#8a948f;
+       display:inline-flex;align-items:center;gap:5px}
+  .opt i{display:inline-block;width:14px;height:3px;border-radius:2px;opacity:.35}
+  .opt.on{color:var(--text);border-color:#c9d6cf;background:#f6f9f7}
+  .opt.on i{opacity:1}
   .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--sub);margin-top:10px}
   .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:4px}
 
@@ -384,11 +393,11 @@
       </div>
     </h2>
     <div class="chart-box"><canvas id="chart"></canvas></div>
-    <div class="legend">
-      <span><i style="background:#0f9f6e"></i>체중</span>
-      <span><i style="background:#9fb3a8"></i>7일 평균</span>
-      <span><i style="background:repeating-linear-gradient(90deg,#6a8fd6 0 4px,transparent 4px 7px)"></i>계획 페이스</span>
-      <span><i style="background:repeating-linear-gradient(90deg,#dc2f2f 0 4px,transparent 4px 7px)"></i>목표</span>
+    <div class="goal-note" id="goalNote"></div>
+    <div class="chart-opts">
+      <span class="opt-lbl">함께 보기</span>
+      <button class="opt" data-line="avg"><i style="background:#9fb3a8"></i>7일 평균</button>
+      <button class="opt" data-line="plan"><i style="background:repeating-linear-gradient(90deg,#6a8fd6 0 4px,transparent 4px 7px)"></i>계획 페이스</button>
     </div>
   </section>
 
@@ -798,62 +807,112 @@ function renderVerdict(){
   }
 }
 
+/* 그래프에서 함께 볼 선 (기기별로 기억) */
+let chartLines = (()=>{ try{ return JSON.parse(localStorage.getItem('wm_lines')||'{}'); }catch(e){ return {}; } })();
+function syncLineBtns(){ document.querySelectorAll('.opt[data-line]').forEach(b=>b.classList.toggle('on', !!chartLines[b.dataset.line])); }
+document.querySelector('.chart-opts').addEventListener('click', e=>{
+  const b=e.target.closest('.opt[data-line]'); if(!b) return;
+  chartLines[b.dataset.line]=!chartLines[b.dataset.line];
+  try{ localStorage.setItem('wm_lines', JSON.stringify(chartLines)); }catch(err){}
+  syncLineBtns(); renderChart();
+});
+
+// 점 위에 체중 숫자를 적는 작은 플러그인 (점이 많으면 최근 값·최저·최고만)
+const weightLabels = {
+  id:'weightLabels',
+  afterDatasetsDraw(c){
+    const meta=c.getDatasetMeta(0), ds=c.data.datasets[0]; if(!meta || meta.hidden) return;
+    const idx=[]; ds.data.forEach((v,i)=>{ if(v!=null) idx.push(i); });
+    if(!idx.length) return;
+    let show;
+    if(idx.length<=12) show=new Set(idx);
+    else {
+      // 점이 많으면 최근 값 + 최저 + 최고만 (서로 가까우면 생략해서 겹치지 않게)
+      const vals=idx.map(i=>ds.data[i]); show=new Set([idx[idx.length-1]]);
+      for(const i of [idx[vals.indexOf(Math.min(...vals))], idx[vals.indexOf(Math.max(...vals))]])
+        if([...show].every(j=>Math.abs(idx.indexOf(i)-idx.indexOf(j))>=4)) show.add(i);
+    }
+    const ctx=c.ctx; ctx.save();
+    ctx.font='700 11px Pretendard, -apple-system, sans-serif'; ctx.textAlign='center';
+    const last=idx[idx.length-1];
+    for(const i of show){
+      const p=meta.data[i]; if(!p) continue;
+      const prev=idx[idx.indexOf(i)-1], up = prev!=null && ds.data[i]>ds.data[prev];
+      ctx.fillStyle = i===last ? '#17201b' : '#6b7770';
+      const y = (prev!=null && !up) ? p.y+18 : p.y-10;   // 내려온 점은 아래, 올라간 점은 위에 적어서 선과 안 겹치게
+      ctx.fillText(fmtW(ds.data[i]), Math.min(Math.max(p.x, c.chartArea.left+14), c.chartArea.right-14), y);
+    }
+    ctx.restore();
+  }
+};
+
 function renderChart(){
+  syncLineBtns();
   const today=todayKey();
   const canvas=$('chart');
   if(!records.length){
     if(chart){ chart.destroy(); chart=null; }
-    const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); return;
+    const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+    $('goalNote').textContent=''; return;
   }
-  const first=records[0].date;
-  const end = records[records.length-1].date > today ? records[records.length-1].date : today;
+  const first=records[0].date, lastRec=records[records.length-1].date;
+  const end = lastRec > today ? lastRec : today;
+  // 선택한 기간 안에서도 첫 기록 이전의 빈 날짜는 잘라냄 (최소 7일은 보여줌)
   let start = chartRange==='all' ? first : addDays(end, -(Number(chartRange)-1));
-  if(chartRange==='all' && daysBetween(start,end)<6) start=addDays(end,-6);
+  if(start < first) start = first;
+  if(daysBetween(start,end) < 3) start = addDays(end,-3);   // 기록이 아주 적을 때도 너무 좁지 않게
 
   const map=new Map(records.map(r=>[r.date,r.weight]));
-  const labels=[], wData=[], avgData=[], planData=[], goalData=[], keys=[];
+  const labels=[], wData=[], avgData=[], planData=[], keys=[];
+  const s0=getStart();
   for(let k=start; k<=end; k=addDays(k,1)){
     keys.push(k); labels.push(shortDate(k));
     wData.push(map.has(k)?map.get(k):null);
     const win=records.filter(r=>r.date<=k && r.date>addDays(k,-7));
-    avgData.push(win.length && k>=first ? r2(win.reduce((a,r)=>a+r.weight,0)/win.length) : null);
-    const s=getStart();
-    planData.push(k>=s.date ? r2(plannedWeightOn(k)) : null);
-    goalData.push(settings.goalWeight);
+    avgData.push(chartLines.avg && win.length && k>=first && k<=lastRec ? r2(win.reduce((a,r)=>a+r.weight,0)/win.length) : null);
+    planData.push(chartLines.plan && k>=s0.date ? r2(plannedWeightOn(k)) : null);
   }
   const ptColors=keys.map(k=>{
     if(!map.has(k)) return '#0f9f6e';
     const p=prevRecord(k); if(!p) return '#0f9f6e';
     return map.get(k)<p.weight ? '#15944f' : map.get(k)>p.weight ? '#dc2f2f' : '#8a948f';
   });
-  const many = labels.length>45;
+  const nPts=wData.filter(v=>v!=null).length, many = nPts>30, mid = nPts>14;
+
+  // 세로 범위: 체중 위주로 딱 맞게. 목표가 가까우면(2kg 이내) 목표선도 포함
+  const goal=settings.goalWeight;
+  const shown=[...wData, ...(chartLines.avg?avgData:[]), ...(chartLines.plan?planData:[])].filter(v=>v!=null);
+  let lo=Math.min(...shown), hi=Math.max(...shown);
+  const goalNear = goal >= lo-2;
+  if(goalNear) lo=Math.min(lo, goal);
+  const span=Math.max(hi-lo, 1.5), pad=Math.max(0.4, span*0.18);
+  const yMin=Math.floor((lo-pad)*2)/2, yMax=Math.ceil((hi+pad)*2)/2;
+  const goalData = goalNear ? keys.map(()=>goal) : [];
+  const curW=records[records.length-1].weight;
+  $('goalNote').innerHTML = goalNear ? '' : `목표 <b>${fmtW(goal)}kg</b>까지 ${fmtW(r2(curW-goal))}kg — 그래프 아래쪽 밖에 있어요`;
+
   const data={ labels, datasets:[
-    { label:'체중', data:wData, borderColor:'#0f9f6e', backgroundColor:'rgba(15,159,110,.10)', fill:'origin',
-      borderWidth:2.5, tension:.3, spanGaps:true, pointRadius:many?1.5:3.5, pointHoverRadius:6,
-      pointBackgroundColor:ptColors, pointBorderColor:'#fff', pointBorderWidth:1, order:1 },
-    { label:'7일 평균', data:avgData, borderColor:'#9fb3a8', borderWidth:1.5, pointRadius:0, tension:.3, spanGaps:true, order:2 },
-    { label:'계획 페이스', data:planData, borderColor:'#6a8fd6', borderWidth:1.5, borderDash:[5,4], pointRadius:0, order:3 },
-    { label:'목표', data:goalData, borderColor:'#dc2f2f', borderWidth:1.5, borderDash:[5,4], pointRadius:0, order:4 },
+    { label:'체중', data:wData, borderColor:'#0f9f6e', borderWidth:3, tension:.25, spanGaps:true,
+      pointRadius:many?2:mid?3.5:5, pointHoverRadius:7, pointBackgroundColor:ptColors, pointBorderColor:'#fff', pointBorderWidth:2, order:1 },
+    { label:'7일 평균', data:avgData, borderColor:'#9fb3a8', borderWidth:2, pointRadius:0, tension:.3, spanGaps:true, order:2, hidden:!chartLines.avg },
+    { label:'계획 페이스', data:planData, borderColor:'#6a8fd6', borderWidth:1.5, borderDash:[5,4], pointRadius:0, order:3, hidden:!chartLines.plan },
+    { label:'목표', data:goalData, borderColor:'#dc2f2f', borderWidth:1.5, borderDash:[5,4], pointRadius:0, order:4, hidden:!goalNear },
   ]};
-  const vals=[...wData,...avgData,...planData].filter(v=>v!=null);
-  const lo=Math.min(...vals), hi=Math.max(...vals);
-  // 목표선이 너무 멀면 그래프가 납작해지지 않도록 범위를 체중 위주로
-  let yMin=Math.floor(lo-1), yMax=Math.ceil(hi+1);
-  if(settings.goalWeight>=yMin-3) yMin=Math.min(yMin, Math.floor(settings.goalWeight-0.5));
   const opts={
-    responsive:true, maintainAspectRatio:false, animation:{duration:400},
+    responsive:true, maintainAspectRatio:false, animation:{duration:300},
+    layout:{ padding:{ top:14, right:14, left:4 } },
     interaction:{mode:'index', intersect:false},
     plugins:{ legend:{display:false},
-      tooltip:{ filter:i=>i.raw!=null, callbacks:{
+      tooltip:{ filter:i=>i.raw!=null && !i.dataset.hidden, callbacks:{
         title:it=>longDate(keys[it[0].dataIndex]),
         label:c=>` ${c.dataset.label}: ${fmtW(c.raw)}kg` } } },
     scales:{
-      x:{ grid:{display:false}, ticks:{ color:'#8a948f', font:{size:10}, maxRotation:0, autoSkip:true, maxTicksLimit:7 } },
-      y:{ min:yMin, max:yMax, grid:{color:'#edf2ef'}, ticks:{ color:'#8a948f', font:{size:10}, callback:v=>v+'kg' } }
+      x:{ grid:{display:false}, ticks:{ color:'#8a948f', font:{size:10.5}, maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
+      y:{ min:yMin, max:yMax, grid:{color:'#edf2ef'}, ticks:{ color:'#8a948f', font:{size:10.5}, maxTicksLimit:6, callback:v=>(Number.isInteger(v)?v:v.toFixed(1))+'kg' } }
     }
   };
   if(chart){ chart.data=data; chart.options=opts; chart.update(); }
-  else chart=new Chart(canvas,{ type:'line', data, options:opts });
+  else chart=new Chart(canvas,{ type:'line', data, options:opts, plugins:[weightLabels] });
 }
 
 function renderCalendar(){
