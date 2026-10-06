@@ -279,6 +279,8 @@
   .diff-btns button[data-v="down"].on{background:#fde3e3;border-color:#f1a9a9;color:var(--up)}
   .diff-btns button.on small{color:inherit}
   .diff-h{font-size:11.5px;color:var(--sub);margin-top:6px}
+  .set-row .bw{height:44px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;
+               font-size:14px;font-weight:700;color:var(--sub)}
   .mini.swap{margin-top:6px;margin-right:4px;background:#eef3fb;color:#2b63c4}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
   .field select{width:100%;height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;font-size:16px;background:#fff;font-family:inherit;color:var(--text)}
@@ -527,7 +529,13 @@
       <div class="field"><label for="eInc">증량 단위 (kg)</label><input type="text" id="eInc" inputmode="decimal"></div>
       <div class="field"><label for="eStart">시작 무게 (선택)</label><input type="text" id="eStart" inputmode="decimal" placeholder="첫 기록 때 사용"></div>
     </div>
-    <label class="chk-line"><input type="checkbox" id="eAssist"><span><b>보조(어시스트) 무게 운동</b><br>어시스트 풀업·딥스처럼 보조 무게를 줄일수록 성장으로 판단해요</span></label>
+    <div class="field"><label for="eType">무게 입력 방식</label>
+      <select id="eType">
+        <option value="total">총 무게 — 바벨·머신 (예: 스쿼트 100kg)</option>
+        <option value="side">한쪽 무게 — 덤벨 한 개 무게 (예: 16kg)</option>
+        <option value="assist">보조 무게 — 어시스트 풀업·딥스 (보조를 줄일수록 성장)</option>
+        <option value="body">맨몸 — 무게 없이 횟수만 (예: 행잉 레그 레이즈)</option>
+      </select></div>
     <div class="field"><label for="eAlt">대체 종목 (선택)</label><select id="eAlt"></select></div>
     <div class="hint" style="font-size:12px;color:var(--sub);line-height:1.5">모든 세트에서 <b>최대 횟수</b>를 채우면 다음번에 <b>증량 단위</b>만큼 무게를 올리라고(보조 운동은 보조를 줄이라고) 추천해요. 맨몸 운동은 증량 단위를 0으로 두면 횟수로 과부하를 판단해요.<br>
     <b>대체 종목</b>은 운동 시작 때 자동으로 들어가지 않고, 기본 운동 카드의 "↔ 바꾸기" 버튼으로 골라 쓸 수 있어요.</div>
@@ -1105,23 +1113,24 @@ const PARTS = [
 ];
 // [이름, 세트, 최소 횟수, 최대 횟수, 증량 단위(kg), 옵션]
 //  옵션 assist:true → 보조(어시스트) 무게 운동 / alt:n → n번째 운동 대신 할 때 쓰는 대체 종목
-const ROUTINE_VER = 2;
+//       load:'side' → 한쪽 무게(덤벨) / 'body' → 맨몸(무게 입력 없음) / 없으면 총 무게
+const ROUTINE_VER = 3;
 const DEFAULT_ROUTINE = {
   chest: [
-    ['인클라인 벤치 프레스',3,8,12,5], ['덤벨 벤치 프레스',3,8,12,2], ['체스트 프레스 머신',3,8,12,5],
+    ['인클라인 벤치 프레스',3,8,12,5], ['덤벨 벤치 프레스',3,8,12,2,{load:'side'}], ['체스트 프레스 머신',3,8,12,5],
     ['라잉 트라이셉스 익스텐션',3,10,15,2.5], ['V바 푸쉬다운',3,10,15,2.5],
     ['어시스트 딥스',3,8,12,5,{assist:true}] ],
   back: [
     ['어시스트 풀업',3,8,12,5,{assist:true}], ['랫 풀다운',3,8,12,5,{alt:1}],
     ['티바 로우',3,8,12,5], ['원 암 머신 로우',3,8,12,5],
-    ['이지바 컬',3,8,12,2.5], ['해머 컬',3,10,15,2], ['인클라인 덤벨 컬',3,10,15,2] ],
+    ['이지바 컬',3,8,12,2.5], ['해머 컬',3,10,15,2,{load:'side'}], ['인클라인 덤벨 컬',3,10,15,2,{load:'side'}] ],
   legs: [
     ['바벨 스쿼트',3,8,12,5], ['레그 프레스',3,8,12,10,{alt:1}],
-    ['레그 컬',3,10,15,5], ['레그 익스텐션',3,10,15,5], ['행잉 레그 레이즈',3,10,20,0] ],
+    ['레그 컬',3,10,15,5], ['레그 익스텐션',3,10,15,5], ['행잉 레그 레이즈',3,10,20,0,{load:'body'}] ],
   shoulders: [
-    ['덤벨 밀리터리 프레스',3,8,12,2], ['숄더 프레스 머신',3,8,12,5,{alt:1}],
-    ['사이드 레터럴 레이즈',3,12,15,1],
-    ['리어 델트 플라이',3,12,15,5], ['벤트오버 덤벨 로우',3,10,15,2,{alt:4}] ],
+    ['덤벨 밀리터리 프레스',3,8,12,2,{load:'side'}], ['숄더 프레스 머신',3,8,12,5,{alt:1}],
+    ['사이드 레터럴 레이즈',3,12,15,1,{load:'side'}],
+    ['리어 델트 플라이',3,12,15,5], ['벤트오버 덤벨 로우',3,10,15,2,{alt:4,load:'side'}] ],
 };
 
 const WO_SETTINGS = db.collection('settings').doc('workout');
@@ -1175,6 +1184,19 @@ function metrics(sets){
   let top=0,best=0,vol=0,reps=0;
   for(const s of sets){ top=Math.max(top,s.w); best=Math.max(best,e1rm(s)); vol+= s.w>0 ? s.w*s.r : s.r; reps+=s.r; }
   return { top, best, vol, reps };
+}
+/* ---------- 무게 입력 방식: total(총 무게) / side(한쪽 무게) / body(맨몸) ---------- */
+const LOAD_LABEL = { total:'총 무게', side:'한쪽 무게', body:'맨몸' };
+function guessLoad(name){
+  name=String(name||'');
+  if(/행잉|크런치|플랭크|푸시업|푸쉬업|윗몸/.test(name)) return 'body';
+  if(/덤벨|해머 ?컬|사이드 ?레터럴/.test(name)) return 'side';
+  return 'total';
+}
+function loadOf(exId, entry){
+  if(entry && entry.load) return entry.load;
+  const ex=exercises.find(x=>x.id===exId);
+  return (ex && ex.load) || guessLoad(ex ? ex.name : entry && entry.name);
 }
 /* ---------- 어시스트(보조 무게) 운동 ---------- */
 function isAssist(exId, entry){
@@ -1284,7 +1306,8 @@ function suggest(ex){
   if(!h.length){
     const w = ex.startW!=null ? ex.startW : '';
     return { kind:'new', label:'첫 기록', w, reps:Array(n).fill(lo),
-      goal: w!=='' ? `첫 기록 · 시작 무게 참고 ${W(w)||'맨몸'}, ${lo}~${hi}회 × ${n}세트`
+      goal: (!A && (ex.load||guessLoad(ex.name))==='body') ? `첫 기록 · 맨몸으로 ${lo}~${hi}회 × ${n}세트`
+          : w!=='' ? `첫 기록 · 시작 무게 참고 ${W(w)||'맨몸'}, ${lo}~${hi}회 × ${n}세트`
                    : A ? `첫 기록 · ${lo}~${hi}회를 할 수 있는 보조 무게를 찾아서 기록해요` : `첫 기록 · ${lo}~${hi}회를 할 수 있는 무게를 찾아서 기록해요` };
   }
   const last=h[h.length-1];
@@ -1503,12 +1526,12 @@ function renderSessionList(){
 /* ---------- 진행 중인 세션 ---------- */
 function makeEntry(ex){
   const s=suggest(ex);
-  return { exId:ex.id, name:ex.name, assist:!!ex.assist, kind:s.kind, label:s.label, goal:s.goal,
+  return { exId:ex.id, name:ex.name, assist:!!ex.assist, load: ex.assist ? 'total' : (ex.load||guessLoad(ex.name)), kind:s.kind, label:s.label, goal:s.goal,
            sets:s.reps.map(r=>({ w:'', r, done:false })) };   // 무게는 직접 입력
 }
 function entryHtml(en,i){
   const h=historyOf(en.exId), last=h[h.length-1];
-  const A=isAssist(en.exId,en);
+  const A=isAssist(en.exId,en), L = A ? 'total' : loadOf(en.exId,en), BODY = L==='body';
   const lastTxt = last ? `지난번 ${shortDate(last.date)} · ${setsText(last.sets, last.assist)}${last.plan?` → ${PLAN_LABEL[last.plan]} 선택`:''}` : '이전 기록 없음';
   const allDone = en.sets.length && en.sets.every(s=>s.done);
   return `<div class="ex ${allDone?'complete':''}" data-i="${i}">
@@ -1519,12 +1542,13 @@ function entryHtml(en,i){
         .map(x=>`<button class="mini swap" data-act="swap" data-to="${x.id}">↔ ${esc(x.name)}(으)로 바꾸기</button>`).join('')}
     ${en.sets.map((s,j)=>`<div class="set-row ${s.done?'done':''}" data-j="${j}">
       <span class="sn">${j+1}</span>
-      <input class="w" inputmode="decimal" value="${s.w==null?'':esc(s.w)}" placeholder="${A?'보조':'무게(한쪽)'}">
-      <span class="u">${A?'보조kg':'kg'} ×</span>
+      ${BODY ? `<span class="bw">맨몸</span><span class="u">×</span>`
+             : `<input class="w" inputmode="decimal" value="${s.w==null?'':esc(s.w)}" placeholder="${A?'보조':L==='side'?'무게(한쪽)':'총 무게'}">
+      <span class="u">${A?'보조kg':'kg'} ×</span>`}
       <input class="r" inputmode="numeric" value="${s.r==null?'':esc(s.r)}" placeholder="횟수">
       <span class="u">회</span>
       <button class="chk" data-act="chk" aria-label="세트 완료">✓</button></div>`).join('')}
-    ${allDone ? `<div class="diff">
+    ${allDone && !BODY ? `<div class="diff">
       <div class="diff-q">다음엔 어떻게 할까요?</div>
       <div class="diff-btns">${['up','hold','down'].map(v=>`<button data-act="diff" data-v="${v}" class="${en.nextPlan===v?'on':''}">${PLAN_LABEL[v]}</button>`).join('')}</div></div>` : ''}
     <div class="ex-foot"><button class="mini" data-act="addSet">+ 세트</button>${en.sets.length>1?'<button class="mini" data-act="rmSet">− 세트</button>':''}</div>
@@ -1608,7 +1632,7 @@ $('sessionArea').addEventListener('click', e=>{
   if(act==='chk'){
     const row=b.closest('.set-row'), j=+row.dataset.j, s=en.sets[j];
     if(!s.done){
-      const w=num(s.w), r=num(s.r);
+      const w = loadOf(en.exId,en)==='body' && !isAssist(en.exId,en) ? 0 : num(s.w), r=num(s.r);
       if(w==null || w<0){ toast(isAssist(en.exId,en)?'보조 무게를 입력해주세요 (보조 없으면 0)':'무게를 입력해주세요 (맨몸은 0)'); row.querySelector('.w').focus(); return; }
       if(r==null || r<1 || r!==Math.round(r)){ toast('횟수를 입력해주세요'); row.querySelector('.r').focus(); return; }
       s.w=w; s.r=r; s.done=true;
@@ -1796,7 +1820,7 @@ function renderRoutine(){
   $('rtTabs').innerHTML=PARTS.map(p=>`<button data-p="${p.id}" class="${p.id===rtPart?'active':''}">${p.name}</button>`).join('');
   const exs=partExercises(rtPart);
   $('rtList').innerHTML = exs.length ? exs.map((ex,i)=>`<div class="rt-row" data-id="${ex.id}">
-      <div class="nm"><b>${isAltEx(ex)?'<span style="color:var(--sub);font-weight:600">↳ </span>':''}${esc(ex.name)}${ex.assist?'<span class="tag k-reps">보조</span>':''}</b>
+      <div class="nm"><b>${isAltEx(ex)?'<span style="color:var(--sub);font-weight:600">↳ </span>':''}${esc(ex.name)}${ex.assist?'<span class="tag k-reps">보조</span>':(ex.load||guessLoad(ex.name))==='side'?'<span class="tag k-hold">한쪽</span>':(ex.load||guessLoad(ex.name))==='body'?'<span class="tag k-hold">맨몸</span>':''}</b>
         <span>${isAltEx(ex)?'대체 종목 · ':''}${ex.sets}세트 · ${ex.repMin}~${ex.repMax}회 · ${num(ex.inc) ? (ex.assist?'보조 −':'+')+fmtK(ex.inc)+'kg씩' : '횟수로 과부하'}</span></div>
       <button data-a="up" ${i===0?'disabled style="opacity:.35"':''}>▲</button>
       <button data-a="down" ${i===exs.length-1?'disabled style="opacity:.35"':''}>▼</button>
@@ -1839,7 +1863,7 @@ function openExEdit(ex, ctx){
   $('eMax').value  = ex ? ex.repMax : 12;
   $('eInc').value  = ex ? fmtK(ex.inc||0) : 5;
   $('eStart').value= ex && ex.startW!=null ? fmtK(ex.startW) : '';
-  $('eAssist').checked = !!(ex && ex.assist);
+  $('eType').value = ex ? (ex.assist ? 'assist' : (ex.load||guessLoad(ex.name))) : 'total';
   fillAltOptions(part, ex&&ex.id, ex&&ex.altOf);
   // 운동 중에 새로 만드는 경우 대체 종목 설정은 숨김
   $('eAlt').closest('.field').style.display = editCtx.addToSession ? 'none' : '';
@@ -1856,9 +1880,10 @@ $('eSave').onclick=()=>{
   if(!sets||sets<1||sets>10||sets!==Math.round(sets)){ toast('세트 수는 1~10 사이로 입력해주세요'); return; }
   if(!lo||!hi||lo<1||hi>100||lo>hi||lo!==Math.round(lo)||hi!==Math.round(hi)){ toast('횟수 범위를 확인해주세요 (최소 ≤ 최대)'); return; }
   if(inc==null||inc<0||inc>50){ toast('증량 단위를 확인해주세요 (0~50kg)'); return; }
+  if($('eType').value==='body'){ $('eInc').value='0'; }
   if($('eStart').value.trim()!=='' && (sw==null||sw<0)){ toast('시작 무게를 확인해주세요'); return; }
-  const data={ name, part, sets, repMin:lo, repMax:hi, inc, startW:sw,
-               assist:$('eAssist').checked, altOf: editCtx.addToSession ? null : ($('eAlt').value||null) };
+  const data={ name, part, sets, repMin:lo, repMax:hi, inc: $('eType').value==='body' ? 0 : inc, startW: $('eType').value==='body' ? null : sw,
+               assist:$('eType').value==='assist', load: $('eType').value==='assist' ? 'total' : $('eType').value, altOf: editCtx.addToSession ? null : ($('eAlt').value||null) };
   let id;
   if(editingEx){
     id=editingEx.id;
@@ -1888,6 +1913,17 @@ function seedIfNeeded(){
   if(seeding || !exFromServer || !setFromServer || !woFromServer) return;
   if(woSettings.seeded && (woSettings.routineVer||0)>=ROUTINE_VER) return;
   seeding=true;
+  if(woSettings.seeded && (woSettings.routineVer||0)>=2){
+    // 루틴은 그대로 두고, 무게 입력 방식(load)이 없는 운동에만 이름으로 판단해서 채워 넣음
+    const b=db.batch();
+    exercises.filter(e=>!e.load && !e.assist).forEach(e=>{
+      const L=guessLoad(e.name); const upd={ load:L }; if(L==='body') upd.inc=0;
+      b.set(db.collection('exercises').doc(e.id), upd, { merge:true });
+    });
+    b.set(WO_SETTINGS, { routineVer:ROUTINE_VER }, { merge:true });
+    b.commit().catch(e=>console.error(e)).finally(()=>{ seeding=false; });
+    return;
+  }
   const b=db.batch(), norm=x=>String(x).replace(/\s+/g,'');
   // 예전 기본 루틴(chest-1 같은 ID)을 새 기본 루틴으로 교체.
   // 이미 기록이 있는 운동이 새 루틴에 같은 이름으로 있으면 ID를 그대로 써서 지난 기록을 이어감. 직접 추가한 운동은 건드리지 않음.
@@ -1905,7 +1941,7 @@ function seedIfNeeded(){
     list.forEach(([name,sets,repMin,repMax,inc,opt],i)=>{
       opt=opt||{};
       b.set(db.collection('exercises').doc(idOf(part,i+1)), { name, part, order:i+1, sets, repMin, repMax, inc, startW:null,
-        assist:!!opt.assist, altOf: opt.alt ? idOf(part,opt.alt) : null });
+        assist:!!opt.assist, load: opt.load || 'total', altOf: opt.alt ? idOf(part,opt.alt) : null });
     });
   b.set(WO_SETTINGS, { seeded:true, routineVer:ROUTINE_VER }, { merge:true });
   b.commit().catch(e=>console.error(e)).finally(()=>{ seeding=false; });
