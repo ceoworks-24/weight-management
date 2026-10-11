@@ -281,6 +281,51 @@
   .diff-h{font-size:11.5px;color:var(--sub);margin-top:6px}
   .set-row .bw{height:44px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;
                font-size:14px;font-weight:700;color:var(--sub)}
+  .ex-goal.prev{font-size:13.5px;line-height:1.7;font-variant-numeric:tabular-nums}
+  .pv-row{display:flex;gap:8px}
+  .pv-k{color:var(--sub);font-weight:700;min-width:52px}
+  .pv-plan{font-weight:800}
+  .pv-up{color:var(--down)} .pv-hold{color:#2b63c4} .pv-down{color:var(--up)}
+  .swaps{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+  .swaps .mini.swap{margin:0}
+  .swap-sel{height:32px;border:1px solid #dfe7fb;background:#eef3fb;color:#2b63c4;border-radius:8px;font-size:12px;font-weight:700;
+            padding:0 8px;font-family:inherit;max-width:100%}
+  /* 리포트 */
+  .pill{font-size:12px;font-weight:800;padding:4px 10px;border-radius:99px;white-space:nowrap;flex:0 0 auto}
+  .p-up{background:#dcf5e8;color:var(--down)} .p-warn{background:#fdf1dc;color:var(--warn)} .p-flat{background:#eef1ef;color:#5b6660}
+  .rp-sec{padding:4px 0 14px}
+  .rp-sec + .rp-sec{border-top:1px solid var(--line);padding-top:10px}
+  .rp-lbl{font-size:11.5px;font-weight:800;color:var(--primary);margin-bottom:4px}
+  .rp-big{font-size:19px;font-weight:800;letter-spacing:-.3px}
+  .rp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  .rp-stat{border:1.5px solid transparent;background:var(--bg);border-radius:12px;padding:10px 4px;text-align:center;font-family:inherit;color:var(--text)}
+  .rp-stat b{display:block;font-size:19px}
+  .rp-stat span{font-size:12px;color:var(--sub)}
+  .rp-stat.on{border-color:#c9d6cf;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .c-g{color:#1a9d62} .c-y{color:#d9a406} .c-r{color:#e5484d}
+  .rp-open{background:#f7faf8;border-radius:12px;padding:2px 12px;margin-top:10px}
+  .lt{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .lt:last-child{border-bottom:none}
+  .lt i{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .lt i.g{background:#22b573} .lt i.y{background:#f2c230} .lt i.r{background:#e5484d} .lt i.n{background:#cdd5d0}
+  .lt-n{flex:1;min-width:0}
+  .lt-n b{display:block;font-size:13px;line-height:1.35;word-break:keep-all}
+  .lt-n span{font-size:11.5px;color:var(--sub)}
+  .rp-note{font-size:12.5px;color:var(--sub);white-space:nowrap}
+  .rp-note b{color:var(--text)}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;flex:0 0 auto}
+  .cmp div{padding:4px 7px;text-align:center;min-width:62px}
+  .cmp div + div{border-left:1px solid var(--line)}
+  .cmp span{display:block;font-size:10px;color:var(--sub);font-weight:700}
+  .cmp b{font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .cmp .now{background:#f1faf5}
+  .rp-rt{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .rp-rt > b{flex:0 0 76px;font-size:15px}
+  .rp-rt .spark{flex:1;height:36px;background:#eef1ef;border-radius:8px;padding:3px 6px;display:flex;align-items:center;justify-content:center}
+  .rp-rt .spark svg{width:100%;height:100%}
+  .spark-empty{font-size:11px;color:#a0a8a3}
+  .rp-rt .chev{color:#a0a8a3;font-size:13px}
+  .rp-sec .rp-open + .rp-rt{border-top:none}
   .mini.swap{margin-top:6px;margin-right:4px;background:#eef3fb;color:#2b63c4}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
   .field select{width:100%;height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;font-size:16px;background:#fff;font-family:inherit;color:var(--text)}
@@ -525,10 +570,7 @@
       <div class="field"><label for="eMin">최소 횟수</label><input type="text" id="eMin" inputmode="numeric"></div>
       <div class="field"><label for="eMax">최대 횟수</label><input type="text" id="eMax" inputmode="numeric"></div>
     </div>
-    <div class="grid2">
-      <div class="field"><label for="eInc">증량 단위 (kg)</label><input type="text" id="eInc" inputmode="decimal"></div>
-      <div class="field"><label for="eStart">시작 무게 (선택)</label><input type="text" id="eStart" inputmode="decimal" placeholder="첫 기록 때 사용"></div>
-    </div>
+    <div class="field"><label for="eStart">시작 무게 (선택)</label><input type="text" id="eStart" inputmode="decimal" placeholder="첫 기록 때 참고용"></div>
     <div class="field"><label for="eType">무게 입력 방식</label>
       <select id="eType">
         <option value="total">총 무게 — 바벨·머신 (예: 스쿼트 100kg)</option>
@@ -537,8 +579,7 @@
         <option value="body">맨몸 — 무게 없이 횟수만 (예: 행잉 레그 레이즈)</option>
       </select></div>
     <div class="field"><label for="eAlt">대체 종목 (선택)</label><select id="eAlt"></select></div>
-    <div class="hint" style="font-size:12px;color:var(--sub);line-height:1.5">모든 세트에서 <b>최대 횟수</b>를 채우면 다음번에 <b>증량 단위</b>만큼 무게를 올리라고(보조 운동은 보조를 줄이라고) 추천해요. 맨몸 운동은 증량 단위를 0으로 두면 횟수로 과부하를 판단해요.<br>
-    <b>대체 종목</b>은 운동 시작 때 자동으로 들어가지 않고, 기본 운동 카드의 "↔ 바꾸기" 버튼으로 골라 쓸 수 있어요.</div>
+    <div class="hint" style="font-size:12px;color:var(--sub);line-height:1.5">모든 세트에서 <b>최대 횟수</b>를 채우면 다음번에 증량(보조 운동은 보조 줄이기)으로 판단해요. 맨몸 운동은 횟수로 과부하를 판단해요.<br><b>대체 종목</b>은 운동 시작 때 자동으로 들어가지 않고, 운동 카드의 "↔" 버튼으로 골라 쓸 수 있어요.</div>
     <div class="btns">
       <button class="btn ghost" id="eDelete" style="display:none">삭제</button>
       <button class="btn gray" data-close="exEditModal">취소</button>
@@ -1110,6 +1151,7 @@ const PARTS = [
   { id:'back',      name:'등+이두',   emoji:'🦾' },
   { id:'legs',      name:'하체+복근', emoji:'🦵' },
   { id:'shoulders', name:'어깨',      emoji:'🏋️' },
+  { id:'arms',      name:'팔',        emoji:'🤜' },
 ];
 // [이름, 세트, 최소 횟수, 최대 횟수, 증량 단위(kg), 옵션]
 //  옵션 assist:true → 보조(어시스트) 무게 운동 / alt:n → n번째 운동 대신 할 때 쓰는 대체 종목
@@ -1300,73 +1342,38 @@ function recommendPlan(en){ return entryHitMax(en) ? 'up' : 'hold'; }
    - 지난번에 증량/유지/감량을 직접 골랐으면 그대로 따름, 안 골랐으면 자동 판단
    - 무게는 자동으로 채우지 않음. w 값은 참고용(미리보기·상세 화면)으로만 사용 */
 function suggest(ex){
-  const h=historyOf(ex.id), A=!!ex.assist;
-  const n=Math.max(1, ex.sets||3), lo=ex.repMin||8, hi=Math.max(lo, ex.repMax||12), inc=num(ex.inc)||0;
+  const h=historyOf(ex.id), A=!!ex.assist, BODY = !A && (ex.load||guessLoad(ex.name))==='body';
+  const n=Math.max(1, ex.sets||3), lo=ex.repMin||8, hi=Math.max(lo, ex.repMax||12);
+  const reps=Array(n).fill(hi);                          // 횟수는 항상 최대 횟수로 미리 채움
   const W = w => A ? (w>0 ? `보조 ${fmtK(w)}kg` : '맨몸') : (w>0 ? `${fmtK(w)}kg` : '');
   if(!h.length){
     const w = ex.startW!=null ? ex.startW : '';
-    return { kind:'new', label:'첫 기록', w, reps:Array(n).fill(lo),
-      goal: (!A && (ex.load||guessLoad(ex.name))==='body') ? `첫 기록 · 맨몸으로 ${lo}~${hi}회 × ${n}세트`
-          : w!=='' ? `첫 기록 · 시작 무게 참고 ${W(w)||'맨몸'}, ${lo}~${hi}회 × ${n}세트`
-                   : A ? `첫 기록 · ${lo}~${hi}회를 할 수 있는 보조 무게를 찾아서 기록해요` : `첫 기록 · ${lo}~${hi}회를 할 수 있는 무게를 찾아서 기록해요` };
+    return { kind:'new', label:'첫 기록', w, reps,
+      goal: BODY ? `첫 기록 · 맨몸으로 ${lo}~${hi}회 × ${n}세트` : `첫 기록 · ${lo}~${hi}회를 할 수 있는 무게로 기록해요` };
   }
   const last=h[h.length-1];
   const { base, work, hit:hitTop } = topInfo(last, A, n, hi);
-  const canLoad = A ? base>0 && inc>0 : inc>0;          // 무게로 과부하를 줄 수 있는가 (어시스트 0kg이면 횟수로)
-  const incTxt = inc>0 ? (A ? `보조 −${fmtK(inc)}kg` : `+${fmtK(inc)}kg`) : '';
+  const canLoad = !BODY && (A ? base>0 : true);          // 무게로 과부하를 줄 수 있는가
   const plan = last.plan;                               // 지난번에 직접 고른 계획 (없으면 null)
-  const chosen = plan ? `지난번에 '${PLAN_LABEL[plan]}' 선택 · ` : '';
 
-  // ── 증량 (직접 선택했거나, 선택 없이 최대 횟수 달성)
-  const upResult = () => {
-    if(A){
-      if(base<=0) return null;                            // 이미 맨몸 → 횟수로
-      const w = inc>0 ? Math.max(0, rw(base-inc)) : '';
-      return { kind:'up', label: w===0?'맨몸 도전':'보조↓', w, reps:Array(n).fill(lo),
-        goal: w===0 ? `증량 판단 · ${chosen}이제 보조 없이 맨몸으로 도전해요 🎉`
-                    : `증량 판단 · ${chosen}보조를 줄여서${inc>0?`(${incTxt}, 참고 ${fmtK(w)}kg)`:''} ${lo}회 이상` };
-    }
-    const w = inc>0 ? rw(base+inc) : '';
-    return { kind:'up', label:'증량', w, reps:Array(n).fill(lo),
-      goal:`증량 판단 · ${chosen}무게를 올려서${inc>0?`(${incTxt}, 참고 ${fmtK(w)}kg)`:''} ${lo}회 이상` };
-  };
-  if(plan==='up' || (!plan && hitTop && canLoad)){
-    const r=upResult(); if(r) return r;
+  // 증량 (직접 선택했거나, 선택 없이 최대 횟수 달성)
+  if(canLoad && (plan==='up' || (!plan && hitTop))){
+    return A ? { kind:'up', label:'보조↓', w:'', reps, goal:'증량 판단 · 보조를 줄여서' }
+             : { kind:'up', label:'증량',  w:'', reps, goal:'증량 판단 · 무게를 올려서' };
   }
-  // ── 감량 (직접 선택)
-  if(plan==='down'){
-    let w, how;
-    if(A){ w = rw(base + (inc||5)); how = `보조를 늘려서(참고 ${fmtK(w)}kg)`; }
-    else if(base>0){ w = inc>0 ? Math.max(0, roundTo(base-inc, inc)) : ''; how = `무게를 내려서${w!==''?`(−${fmtK(inc)}kg, 참고 ${fmtK(w)}kg)`:''}`; }
-    else { w=''; how = '부담을 줄여서'; }
-    return { kind:'down', label:'감량', w, reps:Array(n).fill(hi),
-      goal:`감량 판단 · ${chosen}${how} ${lo}~${hi}회를 안정적으로 채워요` };
+  // 감량 (직접 선택)
+  if(plan==='down' && !BODY){
+    return { kind:'down', label:'감량', w:'', reps, goal: A ? '감량 판단 · 보조를 늘려서' : '감량 판단 · 무게를 내려서' };
   }
-  // ── 유지 (직접 선택)
-  if(plan==='hold' && hitTop){
-    return { kind:'hold', label:'유지', w:base, reps:Array(n).fill(hi),
-      goal:`유지 판단 · ${chosen}${W(base)?W(base)+' ':''}같은 무게로 ${hi}회를 한 번 더 확실하게` };
-  }
-  // ── 선택이 없을 때만 정체 → 디로드 자동 판단
+  // 정체 → 디로드 (선택이 없을 때만)
   const st=stallInfo(h);
-  if(!plan && st.stalled && !hitTop && inc>0 && last.kind!=='deload' && (A || base>0)){
-    const w = A ? rw(base+inc) : Math.max(0, roundTo(base*0.9, inc));
-    return { kind:'deload', label:'디로드', w, reps:Array(n).fill(hi),
-      goal: A ? `디로드 판단 · ${st.since}회째 제자리예요. 보조를 조금 늘려(참고 ${fmtK(w)}kg) ${hi}회씩 다시 쌓아 올려요`
-              : `디로드 판단 · ${st.since}회째 제자리예요. 약 10% 낮춰(참고 ${fmtK(w)}kg) ${hi}회씩 다시 쌓아 올려요` };
+  if(!plan && canLoad && st.stalled && !hitTop && last.kind!=='deload'){
+    return { kind:'deload', label:'디로드', w: A ? '' : rw(base*0.9), reps,
+      goal: A ? `디로드 판단 · ${st.since}회째 제자리 · 보조를 조금 늘려서` : `디로드 판단 · ${st.since}회째 제자리 · 약 10% 낮춰서` };
   }
-  // ── 같은 무게로 횟수 채우기 / 늘리기
-  if(work.length && work[0].r<lo && canLoad){
-    return { kind:'hold', label:'유지', w:base, reps:Array(n).fill(lo),
-      goal:`유지 판단 · ${chosen}${W(base)?W(base)+' ':''}그대로, 먼저 모든 세트 ${lo}회 채우기` };
-  }
-  const cap = canLoad ? hi : 999;
-  const reps = Array.from({length:n}, (_,i)=>{
-    const b = work[i] ? work[i].r : (work.length ? work[work.length-1].r : lo);
-    return Math.min(cap, Math.max(lo, b+1));
-  });
-  return { kind:'reps', label:'횟수+', w: (A || base>0) ? base : '', reps,
-    goal:`횟수 늘리기 판단 · ${chosen}${W(base)?W(base)+' ':''}그대로, 세트당 1회씩 더 (${reps.join('·')}회)` };
+  // 유지 (직접 선택했거나, 같은 무게로 횟수 채우기)
+  return { kind: plan==='hold' ? 'hold' : 'reps', label: plan==='hold' ? '유지' : '횟수+', w: (A || base>0) ? base : '', reps,
+    goal:`${plan==='hold'?'유지':'횟수 늘리기'} 판단 · ${W(base)?W(base)+' ':''}그대로` };
 }
 
 /* =========================================================
@@ -1376,10 +1383,11 @@ function partLast(){ const m={}; for(const w of doneWorkouts()) m[w.part]=w.date
 function recommendPart(){
   const L=partLast(); let best=null;
   for(const p of PARTS){
+    if(exLoaded && !mainExercises(p.id).length) continue;   // 운동이 하나도 없는 루틴은 추천하지 않음
     const score = L[p.id] ? daysBetween(L[p.id], todayKey()) : 1e9;
     if(!best || score>best.score) best={ id:p.id, score };
   }
-  return best.id;
+  return best ? best.id : PARTS[0].id;
 }
 function weekKey(k){ const d=parseKey(k); d.setDate(d.getDate()-((d.getDay()+6)%7)); return toKey(d); }
 function allExIds(){ const s=new Set(); for(const w of doneWorkouts()) for(const e of (w.entries||[])) s.add(e.exId); return [...s]; }
@@ -1403,7 +1411,7 @@ function renderWorkout(){
 /* ---------- 운동 달력 ---------- */
 let runs=new Set();                       // 러닝한 날짜 (runs 컬렉션, 문서 ID = 날짜)
 let woY=new Date().getFullYear(), woM=new Date().getMonth();
-const PART_SHORT={ chest:'가슴', back:'등', legs:'하체', shoulders:'어깨' };
+const PART_SHORT={ chest:'가슴', back:'등', legs:'하체', shoulders:'어깨', arms:'팔' };
 const DUMBBELL=`<svg viewBox="0 0 24 24" width="19" height="19" aria-label="웨이트"><g fill="currentColor">
   <rect x="1" y="9.2" width="2.6" height="5.6" rx="1"/><rect x="4.1" y="6.4" width="3.6" height="11.2" rx="1.2"/>
   <rect x="7.7" y="10.8" width="8.6" height="2.4" rx="1"/><rect x="16.3" y="6.4" width="3.6" height="11.2" rx="1.2"/>
@@ -1481,36 +1489,89 @@ function renderStart(){
   $('startBtn').disabled = !exs.length;
 }
 
+/* ---------- 점진적 과부하 리포트 ---------- */
+let reportOpen = { cat:null, part:null };     // 펼쳐 둔 항목
+// 기록 1회의 대표 세트: 일반은 가장 무거운 무게(같으면 최다 횟수), 어시스트는 가장 적은 보조
+function topSetText(x){
+  const A=x.assist, BODY = !A && loadOf(null, { name:x.name, load:null })==='body' && x.sets.every(s=>!s.w);
+  let best=x.sets[0];
+  for(const s of x.sets){
+    if(A ? (s.w<best.w || (s.w===best.w && s.r>best.r)) : (s.w>best.w || (s.w===best.w && s.r>best.r))) best=s;
+  }
+  if(BODY || (!A && !best.w)) return `맨몸×${best.r}`;
+  return A ? (best.w>0 ? `보조 ${fmtK(best.w)}kg×${best.r}` : `맨몸×${best.r}`) : `${fmtK(best.w)}kg×${best.r}`;
+}
+// 종목 상태: g(성장) y(유지) r(정체) n(비교할 기록 없음)
+function exReport(ex){
+  const h=historyOf(ex.id);
+  if(!h.length) return { cls:'n', h };
+  const cur=h[h.length-1];
+  if(h.length===1) return { cls:'n', h, cur };
+  const prev=h[h.length-2], st=stallInfo(h);
+  if(st.stalled) return { cls:'r', h, cur, prev, stall:st.since+1 };
+  if(cur.kind==='deload' || cur.kind==='down') return { cls:'y', h, cur, prev };
+  const t=trendOf(cur.m, prev.m);
+  return { cls: t==='up'?'g' : t==='down'?'r' : 'y', h, cur, prev };
+}
+function sparkSvg(vals){
+  if(vals.length<2) return '<span class="spark-empty">기록 부족</span>';
+  const W=100, H=30, lo=Math.min(...vals), hi=Math.max(...vals), span=hi-lo;
+  const pts=vals.map((v,i)=>[4+(W-8)*i/(vals.length-1), span ? 5+(H-10)*(1-(v-lo)/span) : H/2]);
+  const upTrend = vals[vals.length-1] >= vals[0];
+  const c = upTrend ? '#0f9f6e' : '#9aa49e', lp=pts[pts.length-1];
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${pts.map(p=>p.map(n=>n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${lp[0].toFixed(1)}" cy="${lp[1].toFixed(1)}" r="2.6" fill="${c}"/></svg>`;
+}
+function exLine(ex, r, showPart){
+  let right;
+  if(r.cls==='r' && r.stall) right = `<span class="rp-note">${r.stall}번째 <b>제자리</b></span>`;
+  else if(r.prev) right = `<div class="cmp"><div><span>지난번</span><b>${topSetText(r.prev)}</b></div><div class="now"><span>이번</span><b>${topSetText(r.cur)}</b></div></div>`;
+  else if(r.cur) right = `<span class="rp-note">첫 기록 · <b>${topSetText(r.cur)}</b></span>`;
+  else right = '<span class="rp-note">기록 없음</span>';
+  return `<div class="lt" data-ex="${ex.id}"><i class="${r.cls}"></i><div class="lt-n"><b>${esc(ex.name)}</b>${showPart?`<span>${partName(ex.part)}</span>`:''}</div>${right}</div>`;
+}
 function renderReport(){
-  const r=rate4w(); let html='';
-  if(r.rate==null){
-    html+=`<div class="rate"><div class="ring" style="--p:0"><span>-</span></div><div>
-      <div class="t">아직 비교할 기록이 부족해요</div>
-      <div class="m">같은 운동을 두 번 이상 기록하면 지난번과 비교해서 과부하가 잘 되고 있는지 판단해요.</div></div></div>`;
-  } else {
-    const [t,m] = r.rate>=60 ? ['과부하가 아주 잘 되고 있어요 🔥','지금 루틴이 몸에 잘 맞아요. 이 흐름 그대로!']
-               : r.rate>=35 ? ['꾸준히 성장 중이에요 👍','무게나 횟수가 는 날이 충분해요. 정체된 운동만 챙기면 돼요.']
-               : ['정체 신호가 보여요 ⚠️','잠·식사량(특히 단백질)을 점검하고, 정체된 운동은 디로드 추천을 따라보세요.'];
-    html+=`<div class="rate"><div class="ring" style="--p:${r.rate}"><span>${r.rate}%</span></div><div>
-      <div class="t">${t}</div><div class="m">최근 4주 동안 운동 ${r.total}번 중 <b>${r.up}번</b> 지난 기록을 넘었어요. ${m}</div></div></div>`;
-  }
-  const L=partLast();
+  const since=addDays(todayKey(),-27);
+  const all=[];                                   // 최근 4주 안에 기록이 있고, 비교할 수 있는 종목
+  for(const ex of exercises){ const r=exReport(ex); if(r.cur && r.prev && r.cur.date>=since) all.push({ ex, r }); }
+  const cnt={ g:0, y:0, r:0 }; all.forEach(x=>cnt[x.r.cls]++);
+  const total=all.length;
+  const headline = !total ? '아직 비교할 기록이 부족해요'
+    : cnt.g/total>=0.5 ? '과부하 잘 되고 있어요 👍'
+    : cnt.r>cnt.g ? '정체 신호가 보여요 ⚠️' : '꾸준히 유지하고 있어요';
+  const catName={ g:'성장', y:'유지', r:'정체' };
+  let html=`<div class="rp-sec">
+    <div class="rp-lbl">최근 4주</div>
+    <div class="rp-big">${headline}</div>
+    ${total ? `<div class="rp-stats">${['g','y','r'].map(k=>`<button class="rp-stat ${reportOpen.cat===k?'on':''}" data-cat="${k}"><b class="c-${k}">● ${cnt[k]}</b><span>${catName[k]}</span></button>`).join('')}</div>`
+            : '<div class="sub" style="margin-top:4px">같은 종목을 두 번 이상 기록하면 판단해요</div>'}
+    ${reportOpen.cat && total ? `<div class="rp-open">${all.filter(x=>x.r.cls===reportOpen.cat).map(x=>exLine(x.ex, x.r, true)).join('') || `<div class="rp-note" style="padding:8px 0">${catName[reportOpen.cat]} 종목이 없어요</div>`}</div>` : ''}
+  </div>`;
+
+  // 루틴별: 최근 운동 8번의 총 볼륨 추세 + 종목별 지난번/이번 비교
+  html+='<div class="rp-sec">';
   for(const p of PARTS){
-    const exs=partExercises(p.id); if(!exs.length) continue;
-    html+=`<div class="part-sec"><h4><span>${p.name}</span><span>${L[p.id]?'마지막 '+agoText(L[p.id]):''}</span></h4>`;
-    html+=exs.map(ex=>{
-      const h=historyOf(ex.id), st=exStatus(ex.id), last=h[h.length-1];
-      let sub='아직 기록 없음';
-      if(last){
-        sub='최근 '+setsText(last.sets, last.assist);
-        if(h.length>1 && h[0].m.best>0){ const ch=(last.m.best-h[0].m.best)/h[0].m.best*100; sub+=` · 처음보다 ${ch>=0?'+':''}${ch.toFixed(0)}%`; }
-      }
-      return `<div class="exrow" data-ex="${ex.id}"><div><div class="nm">${esc(ex.name)}</div><div class="sub">${sub}</div></div>
-        <span class="st st-${st.k}">${st.t}</span></div>`;
-    }).join('')+'</div>';
+    const exs=mainExercises(p.id).concat(partExercises(p.id).filter(e=>isAltEx(e) && historyOf(e.id).length));
+    if(!exs.length) continue;
+    const vols=doneWorkouts().filter(w=>w.part===p.id).slice(-8).map(w=>w.volume||0);
+    const reps=exs.map(ex=>({ ex, r:exReport(ex) }));
+    const comp=reps.filter(x=>x.r.cls!=='n'), g=comp.filter(x=>x.r.cls==='g').length;
+    const pill = comp.length ? `<span class="pill ${g/comp.length>=0.5?'p-up':'p-warn'}">${g}/${comp.length} 성장</span>` : '<span class="pill p-flat">기록 부족</span>';
+    const open = reportOpen.part===p.id;
+    html+=`<div class="rp-rt ${open?'open':''}" data-part="${p.id}">
+        <b>${p.name}</b><div class="spark">${sparkSvg(vols)}</div>${pill}<span class="chev">${open?'▾':'▸'}</span></div>`;
+    if(open) html+=`<div class="rp-open">${reps.map(x=>exLine(x.ex, x.r, false)).join('')}</div>`;
   }
+  html+='</div>';
   $('report').innerHTML=html;
 }
+$('report').addEventListener('click', e=>{
+  const st=e.target.closest('.rp-stat');
+  if(st){ reportOpen.cat = reportOpen.cat===st.dataset.cat ? null : st.dataset.cat; renderReport(); return; }
+  const rt=e.target.closest('.rp-rt');
+  if(rt){ reportOpen.part = reportOpen.part===rt.dataset.part ? null : rt.dataset.part; renderReport(); return; }
+  const lt=e.target.closest('.lt[data-ex]'); if(lt) openExDetail(lt.dataset.ex);
+}, true);
 
 function renderSessionList(){
   const list=doneWorkouts().slice(-15).reverse();
@@ -1531,15 +1592,23 @@ function makeEntry(ex){
 }
 function entryHtml(en,i){
   const h=historyOf(en.exId), last=h[h.length-1];
-  const A=isAssist(en.exId,en), L = A ? 'total' : loadOf(en.exId,en), BODY = L==='body';
-  const lastTxt = last ? `지난번 ${shortDate(last.date)} · ${setsText(last.sets, last.assist)}${last.plan?` → ${PLAN_LABEL[last.plan]} 선택`:''}` : '이전 기록 없음';
+  const A=isAssist(en.exId,en), L = A ? 'total' : loadOf(en.exId,en), BODY = L==='body';  // 지난번 기록·입력칸 표시 방식
+  const wTxt = w => BODY ? '맨몸' : A ? (w>0 ? `보조 ${fmtK(w)} kg` : '맨몸') : `${fmtK(w)} kg`;
+  const prevHtml = last
+    ? last.sets.map((x,k)=>`<div class="pv-row"><span class="pv-k">[${k+1} set]</span>${wTxt(x.w)} x ${x.r} reps</div>`).join('')
+      + (last.plan ? `<div class="pv-row"><span class="pv-k">[다음]</span><b class="pv-plan pv-${last.plan}">${PLAN_LABEL[last.plan]}</b></div>` : '')
+    : '<div class="pv-row" style="color:var(--sub)">이전 기록 없음</div>';
+  const used=new Set(active.entries.map(e=>e.exId));
+  const swapOpts=PARTS.map(p=>{ const l=partExercises(p.id).filter(x=>x.id!==en.exId && !used.has(x.id));
+    return l.length ? `<optgroup label="${p.name}">${l.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</optgroup>` : ''; }).join('');
   const allDone = en.sets.length && en.sets.every(s=>s.done);
   return `<div class="ex ${allDone?'complete':''}" data-i="${i}">
     <div class="ex-head"><div><b>${esc(en.name)}</b><span class="tag k-${en.kind}">${en.label}</span></div>
       <button class="ex-x" data-act="rmEx" aria-label="이 운동 빼기">×</button></div>
-    <div class="ex-goal">📋 ${lastTxt}<br>🎯 ${esc(en.goal)}</div>
-    ${swapGroup(en.exId).filter(x=>x.id!==en.exId && !active.entries.some(e=>e.exId===x.id))
-        .map(x=>`<button class="mini swap" data-act="swap" data-to="${x.id}">↔ ${esc(x.name)}(으)로 바꾸기</button>`).join('')}
+    <div class="ex-goal prev">${prevHtml}</div>
+    <div class="swaps">${swapGroup(en.exId).filter(x=>x.id!==en.exId && !used.has(x.id))
+        .map(x=>`<button class="mini swap" data-act="swap" data-to="${x.id}">↔ ${esc(x.name)}</button>`).join('')}
+      <select class="swap-sel"><option value="">↔ 다른 운동으로 바꾸기</option>${swapOpts}<option value="__new">✏️ 새 운동 만들어서 바꾸기</option></select></div>
     ${en.sets.map((s,j)=>`<div class="set-row ${s.done?'done':''}" data-j="${j}">
       <span class="sn">${j+1}</span>
       ${BODY ? `<span class="bw">맨몸</span><span class="u">×</span>`
@@ -1618,6 +1687,14 @@ $('sessionArea').addEventListener('input', e=>{
 $('sessionArea').addEventListener('change', e=>{
   if(!active) return;
   if(e.target.id==='sessDate'){ active.date=e.target.value||todayKey(); saveActive(true); }
+  if(e.target.classList.contains('swap-sel') && e.target.value){
+    const i=+e.target.closest('.ex').dataset.i, en=active.entries[i], v=e.target.value;
+    e.target.value='';
+    if(v==='__new'){ openExEdit(null, { part:active.part, addToSession:true, replaceIndex:i }); return; }
+    const to=exercises.find(x=>x.id===v); if(!to) return;
+    if(en.sets.some(x=>x.done) && !confirm(`${to.name}(으)로 바꿀까요? 완료한 세트는 지워져요.`)) return;
+    active.entries[i]=makeEntry(to); saveActive(true); renderSession(); return;
+  }
   if(e.target.id==='addEx' && e.target.value==='__new'){
     e.target.value=''; openExEdit(null, { part:active.part, addToSession:true }); return;
   }
@@ -1636,8 +1713,11 @@ $('sessionArea').addEventListener('click', e=>{
       if(w==null || w<0){ toast(isAssist(en.exId,en)?'보조 무게를 입력해주세요 (보조 없으면 0)':'무게를 입력해주세요 (맨몸은 0)'); row.querySelector('.w').focus(); return; }
       if(r==null || r<1 || r!==Math.round(r)){ toast('횟수를 입력해주세요'); row.querySelector('.r').focus(); return; }
       s.w=w; s.r=r; s.done=true;
-      // 다음 세트 무게가 비어 있으면 같은 무게로 채워줌
-      en.sets.forEach((x,k)=>{ if(k>j && !x.done && (x.w===''||x.w==null)){ x.w=w; const inp=exEl.querySelector(`.set-row[data-j="${k}"] .w`); if(inp) inp.value=w; } });
+      // 이 세트의 무게·횟수를 아직 안 한 다음 세트들에 똑같이 채워줌
+      en.sets.forEach((x,k)=>{ if(k>j && !x.done){
+        x.w=w; x.r=r;
+        const row2=exEl.querySelector(`.set-row[data-j="${k}"]`); if(!row2) return;
+        const wi=row2.querySelector('.w'), ri=row2.querySelector('.r'); if(wi) wi.value=w; if(ri) ri.value=r; } });
       const moreLeft = active.entries.some(x=>x.sets.some(y=>!y.done));
       if(moreLeft) startRest();
     } else s.done=false;
@@ -1804,7 +1884,6 @@ function openExDetail(exId){
   if(exChart){ exChart.destroy(); exChart=null; }
   if(h.length) exChart=new Chart($('exChart'), { type:'line', data, options:opts });
 }
-$('report').addEventListener('click', e=>{ const r=e.target.closest('.exrow'); if(r) openExDetail(r.dataset.ex); });
 
 /* ---------- 부위 선택 / 시작 ---------- */
 $('partGrid').addEventListener('click', e=>{ const b=e.target.closest('.part'); if(!b) return; selectedPart=b.dataset.p; userPicked=true; renderStart(); });
@@ -1821,7 +1900,7 @@ function renderRoutine(){
   const exs=partExercises(rtPart);
   $('rtList').innerHTML = exs.length ? exs.map((ex,i)=>`<div class="rt-row" data-id="${ex.id}">
       <div class="nm"><b>${isAltEx(ex)?'<span style="color:var(--sub);font-weight:600">↳ </span>':''}${esc(ex.name)}${ex.assist?'<span class="tag k-reps">보조</span>':(ex.load||guessLoad(ex.name))==='side'?'<span class="tag k-hold">한쪽</span>':(ex.load||guessLoad(ex.name))==='body'?'<span class="tag k-hold">맨몸</span>':''}</b>
-        <span>${isAltEx(ex)?'대체 종목 · ':''}${ex.sets}세트 · ${ex.repMin}~${ex.repMax}회 · ${num(ex.inc) ? (ex.assist?'보조 −':'+')+fmtK(ex.inc)+'kg씩' : '횟수로 과부하'}</span></div>
+        <span>${isAltEx(ex)?'대체 종목 · ':''}${ex.sets}세트 · ${ex.repMin}~${ex.repMax}회 · ${ex.assist?'보조 무게':LOAD_LABEL[ex.load||guessLoad(ex.name)]}</span></div>
       <button data-a="up" ${i===0?'disabled style="opacity:.35"':''}>▲</button>
       <button data-a="down" ${i===exs.length-1?'disabled style="opacity:.35"':''}>▼</button>
       <button data-a="edit">✎</button></div>`).join('')
@@ -1861,7 +1940,6 @@ function openExEdit(ex, ctx){
   $('eSets').value = ex ? ex.sets : 3;
   $('eMin').value  = ex ? ex.repMin : 8;
   $('eMax').value  = ex ? ex.repMax : 12;
-  $('eInc').value  = ex ? fmtK(ex.inc||0) : 5;
   $('eStart').value= ex && ex.startW!=null ? fmtK(ex.startW) : '';
   $('eType').value = ex ? (ex.assist ? 'assist' : (ex.load||guessLoad(ex.name))) : 'total';
   fillAltOptions(part, ex&&ex.id, ex&&ex.altOf);
@@ -1874,15 +1952,13 @@ function openExEdit(ex, ctx){
 $('ePart').addEventListener('change', ()=>fillAltOptions($('ePart').value, editingEx&&editingEx.id, $('eAlt').value));
 $('eSave').onclick=()=>{
   const name=$('eName').value.trim(), part=$('ePart').value;
-  const sets=num($('eSets').value), lo=num($('eMin').value), hi=num($('eMax').value), inc=num($('eInc').value);
+  const sets=num($('eSets').value), lo=num($('eMin').value), hi=num($('eMax').value);
   const sw=$('eStart').value.trim()==='' ? null : num($('eStart').value);
   if(!name){ toast('운동 이름을 입력해주세요'); return; }
   if(!sets||sets<1||sets>10||sets!==Math.round(sets)){ toast('세트 수는 1~10 사이로 입력해주세요'); return; }
   if(!lo||!hi||lo<1||hi>100||lo>hi||lo!==Math.round(lo)||hi!==Math.round(hi)){ toast('횟수 범위를 확인해주세요 (최소 ≤ 최대)'); return; }
-  if(inc==null||inc<0||inc>50){ toast('증량 단위를 확인해주세요 (0~50kg)'); return; }
-  if($('eType').value==='body'){ $('eInc').value='0'; }
   if($('eStart').value.trim()!=='' && (sw==null||sw<0)){ toast('시작 무게를 확인해주세요'); return; }
-  const data={ name, part, sets, repMin:lo, repMax:hi, inc: $('eType').value==='body' ? 0 : inc, startW: $('eType').value==='body' ? null : sw,
+  const data={ name, part, sets, repMin:lo, repMax:hi, startW: $('eType').value==='body' ? null : sw,
                assist:$('eType').value==='assist', load: $('eType').value==='assist' ? 'total' : $('eType').value, altOf: editCtx.addToSession ? null : ($('eAlt').value||null) };
   let id;
   if(editingEx){
@@ -1895,8 +1971,10 @@ $('eSave').onclick=()=>{
   }
   closeModal('exEditModal');
   if(editCtx.addToSession && active){
-    active.entries.push(makeEntry({ id, ...data })); saveActive(true); renderSession();
-    toast(`${name} 추가! 루틴(${partName(part)})에도 저장됐어요`);
+    if(editCtx.replaceIndex!=null && active.entries[editCtx.replaceIndex]) active.entries[editCtx.replaceIndex]=makeEntry({ id, ...data });
+    else active.entries.push(makeEntry({ id, ...data }));
+    saveActive(true); renderSession();
+    toast(`${name} ${editCtx.replaceIndex!=null?'(으)로 바꿨어요':'추가!'} 루틴(${partName(part)})에도 저장됐어요`);
   } else { rtPart=part; toast('저장했어요'); }
   editCtx={};
 };
