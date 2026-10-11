@@ -263,6 +263,11 @@
   .rt-row .nm span{font-size:12px;color:var(--sub)}
   .rt-row button{border:none;background:var(--bg);width:32px;height:32px;border-radius:8px;font-size:13px;color:var(--text)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pk-grp{font-size:12px;font-weight:800;color:var(--primary);margin:12px 0 4px}
+  .pk-item{display:flex;justify-content:space-between;align-items:center;width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;
+           padding:11px 12px;margin-bottom:6px;font-family:inherit;color:var(--text);text-align:left}
+  .pk-item b{font-size:14px}
+  .pk-item span{font-size:12px;color:var(--sub)}
   .chk-line{display:flex;align-items:flex-start;gap:10px;font-size:14px;margin:2px 0 12px;cursor:pointer}
   .chk-line input{width:20px;height:20px;margin-top:2px;accent-color:var(--primary);flex:0 0 auto}
   .chk-line span{font-size:12px;color:var(--sub);line-height:1.5}
@@ -555,6 +560,17 @@
       <input type="text" id="restSec" inputmode="numeric">
     </div>
     <button class="btn" id="rtDone" style="width:100%">저장하고 닫기</button>
+  </div>
+</div>
+
+<!-- 루틴에 운동 추가: 기존 운동에서 고르기 -->
+<div class="modal-bg" id="pickModal">
+  <div class="modal">
+    <button class="x-close" data-close="pickModal">✕</button>
+    <h3 id="pickTitle">운동 추가</h3>
+    <button class="btn gray" id="pickNew" style="width:100%;margin-bottom:12px">✏️ 새 운동 만들기</button>
+    <div style="font-size:12.5px;color:var(--sub);margin-bottom:4px">또는 다른 루틴의 운동 가져오기 (기록이 하나로 이어져요)</div>
+    <div id="pickList"></div>
   </div>
 </div>
 
@@ -1194,10 +1210,25 @@ function fmtK(w){ const n=num(w); return n==null ? '' : String(rw(n)); }
 function fmtVol(v){ return Math.round(v).toLocaleString('ko-KR'); }
 function partName(id){ const p=PARTS.find(p=>p.id===id); return p?p.name:id; }
 function partEmoji(id){ const p=PARTS.find(p=>p.id===id); return p?p.emoji:'🏋️'; }
-function partExercises(part){ return exercises.filter(e=>e.part===part).sort((a,b)=>(a.order||0)-(b.order||0)); }
+// 운동은 원래 루틴(part) 하나 + 함께 넣은 루틴(extraParts) 여러 개에 들어갈 수 있음. 기록은 하나로 공유
+function inPart(e, part){ return e.part===part || (e.extraParts||[]).includes(part); }
+function orderIn(e, part){ return e.part===part ? (e.order||0) : ((e.orders||{})[part] ?? 999); }
+function partExercises(part){ return exercises.filter(e=>inPart(e,part)).sort((a,b)=>orderIn(a,part)-orderIn(b,part)); }
+// 루틴에 운동 넣기 / 빼기
+function addToPart(ex, part){
+  const extra=[...new Set([...(ex.extraParts||[]), part])];
+  const orders={ ...(ex.orders||{}), [part]: partExercises(part).reduce((a,x)=>Math.max(a,orderIn(x,part)),0)+1 };
+  ex.extraParts=extra; ex.orders=orders;
+  return db.collection('exercises').doc(ex.id).set({ extraParts:extra, orders }, { merge:true });
+}
+function removeFromPart(ex, part){
+  const extra=(ex.extraParts||[]).filter(p=>p!==part);
+  ex.extraParts=extra;
+  return db.collection('exercises').doc(ex.id).set({ extraParts:extra }, { merge:true });
+}
 // 대체 종목(altOf)이 아닌 기본 운동만 — 운동 시작 시 자동으로 들어가는 목록
 function isAltEx(e){ return !!(e.altOf && exercises.some(x=>x.id===e.altOf)); }
-function mainExercises(part){ return partExercises(part).filter(e=>!isAltEx(e)); }
+function mainExercises(part){ return partExercises(part).filter(e=>!(e.part===part && isAltEx(e))); }
 // 서로 바꿔 할 수 있는 종목 묶음 (기본 운동 + 대체 종목들)
 function swapGroup(exId){
   const ex=exercises.find(x=>x.id===exId); if(!ex) return [];
@@ -1599,7 +1630,8 @@ function entryHtml(en,i){
       + (last.plan ? `<div class="pv-row"><span class="pv-k">[다음]</span><b class="pv-plan pv-${last.plan}">${PLAN_LABEL[last.plan]}</b></div>` : '')
     : '<div class="pv-row" style="color:var(--sub)">이전 기록 없음</div>';
   const used=new Set(active.entries.map(e=>e.exId));
-  const swapOpts=PARTS.map(p=>{ const l=partExercises(p.id).filter(x=>x.id!==en.exId && !used.has(x.id));
+  const seenSw=new Set();
+  const swapOpts=PARTS.map(p=>{ const l=partExercises(p.id).filter(x=>x.id!==en.exId && !used.has(x.id) && !seenSw.has(x.id)); l.forEach(x=>seenSw.add(x.id));
     return l.length ? `<optgroup label="${p.name}">${l.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</optgroup>` : ''; }).join('');
   const allDone = en.sets.length && en.sets.every(s=>s.done);
   return `<div class="ex ${allDone?'complete':''}" data-i="${i}">
@@ -1627,7 +1659,8 @@ function renderSession(){
   const el=$('sessionArea');
   if(!active){ el.innerHTML=''; stopElapsed(); return; }
   const used=new Set(active.entries.map(e=>e.exId));
-  const opts=PARTS.map(p=>{ const l=partExercises(p.id).filter(e=>!used.has(e.id));
+  const seenAdd=new Set();
+  const opts=PARTS.map(p=>{ const l=partExercises(p.id).filter(e=>!used.has(e.id) && !seenAdd.has(e.id)); l.forEach(e=>seenAdd.add(e.id));
     return l.length ? `<optgroup label="${p.name}">${l.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}</optgroup>` : ''; }).join('');
   el.innerHTML=`<section class="card">
     <div class="sess-head"><div><div class="p">${partEmoji(active.part)} ${partName(active.part)}</div><div class="elapsed" id="elapsed"></div></div>
@@ -1899,11 +1932,11 @@ function renderRoutine(){
   $('rtTabs').innerHTML=PARTS.map(p=>`<button data-p="${p.id}" class="${p.id===rtPart?'active':''}">${p.name}</button>`).join('');
   const exs=partExercises(rtPart);
   $('rtList').innerHTML = exs.length ? exs.map((ex,i)=>`<div class="rt-row" data-id="${ex.id}">
-      <div class="nm"><b>${isAltEx(ex)?'<span style="color:var(--sub);font-weight:600">↳ </span>':''}${esc(ex.name)}${ex.assist?'<span class="tag k-reps">보조</span>':(ex.load||guessLoad(ex.name))==='side'?'<span class="tag k-hold">한쪽</span>':(ex.load||guessLoad(ex.name))==='body'?'<span class="tag k-hold">맨몸</span>':''}</b>
-        <span>${isAltEx(ex)?'대체 종목 · ':''}${ex.sets}세트 · ${ex.repMin}~${ex.repMax}회 · ${ex.assist?'보조 무게':LOAD_LABEL[ex.load||guessLoad(ex.name)]}</span></div>
+      <div class="nm"><b>${ex.part===rtPart&&isAltEx(ex)?'<span style="color:var(--sub);font-weight:600">↳ </span>':''}${esc(ex.name)}${ex.assist?'<span class="tag k-reps">보조</span>':(ex.load||guessLoad(ex.name))==='side'?'<span class="tag k-hold">한쪽</span>':(ex.load||guessLoad(ex.name))==='body'?'<span class="tag k-hold">맨몸</span>':''}</b>
+        <span>${ex.part!==rtPart?`🔗 ${partName(ex.part)}와 기록 공유 · `:''}${ex.part===rtPart&&isAltEx(ex)?'대체 종목 · ':''}${ex.sets}세트 · ${ex.repMin}~${ex.repMax}회 · ${ex.assist?'보조 무게':LOAD_LABEL[ex.load||guessLoad(ex.name)]}</span></div>
       <button data-a="up" ${i===0?'disabled style="opacity:.35"':''}>▲</button>
       <button data-a="down" ${i===exs.length-1?'disabled style="opacity:.35"':''}>▼</button>
-      <button data-a="edit">✎</button></div>`).join('')
+      ${ex.part===rtPart ? '<button data-a="edit">✎</button>' : '<button data-a="unlink" title="이 루틴에서 빼기">✕</button>'}</div>`).join('')
     : '<div class="empty-msg">등록된 운동이 없어요</div>';
 }
 $('rtTabs').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; rtPart=b.dataset.p; renderRoutine(); });
@@ -1911,13 +1944,36 @@ $('rtList').addEventListener('click', e=>{
   const b=e.target.closest('button[data-a]'); if(!b) return;
   const id=b.closest('.rt-row').dataset.id, a=b.dataset.a;
   if(a==='edit'){ openExEdit(exercises.find(x=>x.id===id)); return; }
+  if(a==='unlink'){
+    const ex=exercises.find(x=>x.id===id); if(!ex) return;
+    if(!confirm(`${ex.name}을(를) ${partName(rtPart)} 루틴에서 뺄까요? (${partName(ex.part)} 루틴과 기록은 그대로)`)) return;
+    removeFromPart(ex, rtPart).catch(e=>toast('저장 실패: '+(e.code||e.message))); renderRoutine(); return;
+  }
   const exs=partExercises(rtPart), i=exs.findIndex(x=>x.id===id), j=a==='up'?i-1:i+1;
   if(j<0||j>=exs.length) return;
   const batch=db.batch();
-  exs.forEach((x,k)=>{ const o = k===i ? j+1 : k===j ? i+1 : k+1; batch.update(db.collection('exercises').doc(x.id), { order:o }); x.order=o; });
+  exs.forEach((x,k)=>{ const o = k===i ? j+1 : k===j ? i+1 : k+1;
+    if(x.part===rtPart){ batch.set(db.collection('exercises').doc(x.id), { order:o }, { merge:true }); x.order=o; }
+    else { x.orders={ ...(x.orders||{}), [rtPart]:o }; batch.set(db.collection('exercises').doc(x.id), { orders:x.orders }, { merge:true }); } });
   renderRoutine(); batch.commit().catch(e=>toast('저장 실패: '+(e.code||e.message)));
 });
-$('rtAdd').onclick=()=>openExEdit(null);
+$('rtAdd').onclick=()=>openPicker();
+function openPicker(){
+  $('pickTitle').textContent = `${partName(rtPart)}에 운동 추가`;
+  const html=PARTS.filter(p=>p.id!==rtPart).map(p=>{
+    const l=exercises.filter(e=>e.part===p.id && !inPart(e,rtPart)).sort((a,b)=>(a.order||0)-(b.order||0));
+    return l.length ? `<div class="pk-grp">${p.name}</div>`+l.map(e=>`<button class="pk-item" data-id="${e.id}"><b>${esc(e.name)}</b><span>${historyOf(e.id).length?'기록 '+historyOf(e.id).length+'회':'기록 없음'}</span></button>`).join('') : '';
+  }).join('');
+  $('pickList').innerHTML = html || '<div class="empty-msg">가져올 수 있는 운동이 없어요</div>';
+  openModal('pickModal');
+}
+$('pickNew').onclick=()=>{ closeModal('pickModal'); openExEdit(null); };
+$('pickList').addEventListener('click', e=>{
+  const b=e.target.closest('.pk-item'); if(!b) return;
+  const ex=exercises.find(x=>x.id===b.dataset.id); if(!ex) return;
+  addToPart(ex, rtPart).catch(err=>toast('저장 실패: '+(err.code||err.message)));
+  closeModal('pickModal'); renderRoutine(); toast(`${ex.name} 추가! 기록은 ${partName(ex.part)}와 함께 이어져요`);
+});
 $('rtDone').onclick=()=>{
   const r=Math.round(num($('restSec').value)||0);
   if(r<10||r>600){ toast('휴식 시간은 10~600초로 입력해주세요'); return; }
@@ -1963,7 +2019,8 @@ $('eSave').onclick=()=>{
   let id;
   if(editingEx){
     id=editingEx.id;
-    if(editingEx.part!==part) data.order=partExercises(part).reduce((a,x)=>Math.max(a,x.order||0),0)+1;
+    if(editingEx.part!==part){ data.order=partExercises(part).reduce((a,x)=>Math.max(a,orderIn(x,part)),0)+1;
+      data.extraParts=(editingEx.extraParts||[]).filter(p=>p!==part); }
     db.collection('exercises').doc(id).set(data, { merge:true });
   } else {
     data.order=partExercises(part).reduce((a,x)=>Math.max(a,x.order||0),0)+1;
@@ -1979,7 +2036,8 @@ $('eSave').onclick=()=>{
   editCtx={};
 };
 $('eDelete').onclick=()=>{
-  if(!editingEx || !confirm(editingEx.name+'을(를) 루틴에서 삭제할까요? 지난 기록은 그대로 남아요.')) return;
+  const shared=(editingEx&&editingEx.extraParts||[]).map(partName);
+  if(!editingEx || !confirm(editingEx.name+'을(를) 삭제할까요?'+(shared.length?` (${shared.join(', ')} 루틴에서도 빠져요)`:'')+' 지난 기록은 그대로 남아요.')) return;
   db.collection('exercises').doc(editingEx.id).delete();
   closeModal('exEditModal'); toast('삭제했어요');
 };
