@@ -275,11 +275,12 @@
   .set-row input::placeholder{font-size:12.5px;font-weight:600;color:#a0a8a3}
   .diff{margin-top:10px;background:#f6f8ff;border:1px solid #dfe7fb;border-radius:12px;padding:10px}
   .diff-q{font-size:12.5px;font-weight:700;color:#2b3a5c;margin-bottom:8px}
-  .diff-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .diff-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
   .diff-btns button{height:40px;border:1.5px solid #dfe7fb;background:#fff;border-radius:10px;font-size:13px;font-weight:700;color:#3a463f;font-family:inherit}
   .diff-btns button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;height:46px}
   .diff-btns button small{font-size:10px;font-weight:700;color:var(--primary)}
   .diff-btns button[data-v="up"].on{background:#dcf5e8;border-color:#9fdcbc;color:var(--down)}
+  .diff-btns button[data-v="reps"].on{background:#f3e8fd;border-color:#cfaef0;color:#7a3fc4}
   .diff-btns button[data-v="hold"].on{background:#e6effc;border-color:#a9c3ef;color:#2b63c4}
   .diff-btns button[data-v="down"].on{background:#fde3e3;border-color:#f1a9a9;color:var(--up)}
   .diff-btns button.on small{color:inherit}
@@ -290,11 +291,27 @@
   .pv-row{display:flex;gap:8px}
   .pv-k{color:var(--sub);font-weight:700;min-width:52px}
   .pv-plan{font-weight:800}
-  .pv-up{color:var(--down)} .pv-hold{color:#2b63c4} .pv-down{color:var(--up)}
+  .pv-up{color:var(--down)} .pv-reps{color:#7a3fc4} .pv-hold{color:#2b63c4} .pv-down{color:var(--up)}
   .swaps{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
   .swaps .mini.swap{margin:0}
   .swap-sel{height:32px;border:1px solid #dfe7fb;background:#eef3fb;color:#2b63c4;border-radius:8px;font-size:12px;font-weight:700;
             padding:0 8px;font-family:inherit;max-width:100%}
+  .sr-top{font-size:15px;font-weight:800;margin-bottom:4px}
+  .sr-top span{font-size:12.5px;color:var(--sub);font-weight:600;margin-left:4px}
+  .sum-head .m b{color:var(--text)}
+  .sr-ex{border-top:1px solid var(--line);padding:12px 0}
+  .sr-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .sr-h b{font-size:14.5px}
+  .sr-chip{font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:99px;white-space:nowrap}
+  .sr-chip.cg{background:#dcf5e8;color:#15944f} .sr-chip.cy{background:#fdf6dc;color:#a8790b} .sr-chip.cr{background:#fde3e3;color:#dc2f2f} .sr-chip.cn{background:#f3e8fd;color:#7a3fc4}
+  .sr-body{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:6px}
+  .sr-sets{font-size:13px;line-height:1.75;font-variant-numeric:tabular-nums;min-width:0}
+  .sr-cmp{flex:0 0 auto}
+  .sr-plans{display:inline-flex;gap:4px;flex-wrap:wrap}
+  .sr-plan{border:1px solid var(--line);background:#fff;border-radius:7px;font-size:11.5px;font-weight:700;padding:2px 7px;font-family:inherit;color:#8a948f}
+  .sr-plan.on{border-color:currentColor;background:#f6f9f7}
+  .sr-plan.pv-up.on{color:var(--down)} .sr-plan.pv-reps.on{color:#7a3fc4} .sr-plan.pv-hold.on{color:#2b63c4} .sr-plan.pv-down.on{color:var(--up)}
+  .edit-banner{background:#fff7e8;color:#8a5a00;border-radius:10px;padding:9px 12px;font-size:12.5px;font-weight:700;margin-bottom:10px}
   /* 리포트 */
   .pill{font-size:12px;font-weight:800;padding:4px 10px;border-radius:99px;white-space:nowrap;flex:0 0 auto}
   .p-up{background:#dcf5e8;color:var(--down)} .p-warn{background:#fdf1dc;color:var(--warn)} .p-flat{background:#eef1ef;color:#5b6660}
@@ -322,7 +339,7 @@
   .cmp div{padding:4px 7px;text-align:center;min-width:62px}
   .cmp div + div{border-left:1px solid var(--line)}
   .cmp span{display:block;font-size:10px;color:var(--sub);font-weight:700}
-  .cmp b{font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .cmp b{font-size:11.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
   .cmp .now{background:#f1faf5}
   .rp-rt{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
   .rp-rt > b{flex:0 0 76px;font-size:15px}
@@ -1340,8 +1357,9 @@ function exStatus(exId){
   return t==='up' ? { k:'up', t:'📈 성장' } : t==='down' ? { k:'down', t:'📉 하락' } : { k:'same', t:'➡️ 유지' };
 }
 
-/* 다음 계획 — 운동을 마칠 때 직접 고르는 증량 / 유지 / 감량 */
-const PLAN_LABEL = { up:'증량', hold:'유지', down:'감량' };
+/* 다음 계획 — 운동을 마칠 때 직접 고르는 무게+ / 횟수+ / 유지 / 감량 */
+const PLAN_LABEL = { up:'무게+', reps:'횟수+', hold:'유지', down:'감량' };
+const PLAN_ORDER = ['up','reps','hold','down'];
 // 저장된 선택값 (예전 버전의 체감 난이도 기록도 호환: 여유·적당 → 증량, 힘들었음 → 유지)
 function planOf(e){
   if(e.nextPlan && PLAN_LABEL[e.nextPlan]) return e.nextPlan;
@@ -1403,7 +1421,7 @@ function suggest(ex){
       goal: A ? `디로드 판단 · ${st.since}회째 제자리 · 보조를 조금 늘려서` : `디로드 판단 · ${st.since}회째 제자리 · 약 10% 낮춰서` };
   }
   // 유지 (직접 선택했거나, 같은 무게로 횟수 채우기)
-  return { kind: plan==='hold' ? 'hold' : 'reps', label: plan==='hold' ? '유지' : '횟수+', w: (A || base>0) ? base : '', reps,
+  return { kind: plan==='hold' ? 'hold' : 'reps', label: plan==='hold' ? '유지' : '횟수+', w: (A || base>0) ? base : '', reps,   // plan==='reps' 도 여기
     goal:`${plan==='hold'?'유지':'횟수 늘리기'} 판단 · ${W(base)?W(base)+' ':''}그대로` };
 }
 
@@ -1532,6 +1550,11 @@ function topSetText(x){
   if(BODY || (!A && !best.w)) return `맨몸×${best.r}`;
   return A ? (best.w>0 ? `보조 ${fmtK(best.w)}kg×${best.r}` : `맨몸×${best.r}`) : `${fmtK(best.w)}kg×${best.r}`;
 }
+// 비교표용: 세트 전체를 짧게 (예: 16×12·11·10 / 보조20×8·8 / 맨몸×15·15)
+function cmpText(x){
+  const g=[]; for(const t of x.sets){ const l=g[g.length-1]; if(l && l.w===t.w) l.r.push(t.r); else g.push({ w:t.w, r:[t.r] }); }
+  return g.map(y=> (y.w>0 ? (x.assist?'보조':'')+fmtK(y.w) : '맨몸') + '×' + y.r.join('·')).join(', ');
+}
 // 종목 상태: g(성장) y(유지) r(정체) n(비교할 기록 없음)
 function exReport(ex){
   const h=historyOf(ex.id);
@@ -1556,7 +1579,7 @@ function sparkSvg(vals){
 function exLine(ex, r, showPart){
   let right;
   if(r.cls==='r' && r.stall) right = `<span class="rp-note">${r.stall}번째 <b>제자리</b></span>`;
-  else if(r.prev) right = `<div class="cmp"><div><span>지난번</span><b>${topSetText(r.prev)}</b></div><div class="now"><span>이번</span><b>${topSetText(r.cur)}</b></div></div>`;
+  else if(r.prev) right = `<div class="cmp"><div><span>지난번</span><b>${cmpText(r.prev)}</b></div><div class="now"><span>이번</span><b>${cmpText(r.cur)}</b></div></div>`;
   else if(r.cur) right = `<span class="rp-note">첫 기록 · <b>${topSetText(r.cur)}</b></span>`;
   else right = '<span class="rp-note">기록 없음</span>';
   return `<div class="lt" data-ex="${ex.id}"><i class="${r.cls}"></i><div class="lt-n"><b>${esc(ex.name)}</b>${showPart?`<span>${partName(ex.part)}</span>`:''}</div>${right}</div>`;
@@ -1651,7 +1674,7 @@ function entryHtml(en,i){
       <button class="chk" data-act="chk" aria-label="세트 완료">✓</button></div>`).join('')}
     ${allDone && !BODY ? `<div class="diff">
       <div class="diff-q">다음엔 어떻게 할까요?</div>
-      <div class="diff-btns">${['up','hold','down'].map(v=>`<button data-act="diff" data-v="${v}" class="${en.nextPlan===v?'on':''}">${PLAN_LABEL[v]}</button>`).join('')}</div></div>` : ''}
+      <div class="diff-btns">${PLAN_ORDER.map(v=>`<button data-act="diff" data-v="${v}" class="${en.nextPlan===v?'on':''}">${PLAN_LABEL[v]}</button>`).join('')}</div></div>` : ''}
     <div class="ex-foot"><button class="mini" data-act="addSet">+ 세트</button>${en.sets.length>1?'<button class="mini" data-act="rmSet">− 세트</button>':''}</div>
   </div>`;
 }
@@ -1663,6 +1686,7 @@ function renderSession(){
   const opts=PARTS.map(p=>{ const l=partExercises(p.id).filter(e=>!used.has(e.id) && !seenAdd.has(e.id)); l.forEach(e=>seenAdd.add(e.id));
     return l.length ? `<optgroup label="${p.name}">${l.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}</optgroup>` : ''; }).join('');
   el.innerHTML=`<section class="card">
+    ${active.backup?'<div class="edit-banner">✏️ 지난 기록을 수정하는 중이에요 · 취소하면 원래대로 돌아가요</div>':''}
     <div class="sess-head"><div><div class="p">${partEmoji(active.part)} ${partName(active.part)}</div><div class="elapsed" id="elapsed"></div></div>
       <input type="date" id="sessDate" value="${active.date}" max="${todayKey()}"></div>
     ${active.entries.length ? active.entries.map(entryHtml).join('') : '<div class="empty-msg">아래에서 운동을 추가하세요</div>'}
@@ -1777,44 +1801,82 @@ $('sessionArea').addEventListener('click', e=>{
     active.entries.splice(i,1); saveActive(true); renderSession();
   }
   else if(act==='cancel'){
-    if(!confirm('진행 중인 운동을 취소할까요? 오늘 입력한 내용이 삭제돼요.')) return;
-    const id=active.id; active=null; stopRest(); clearTimeout(saveTimer);
-    db.collection('workouts').doc(id).delete().catch(()=>{});
+    const editing=!!active.backup;
+    if(!confirm(editing ? '수정을 취소할까요? 원래 기록은 그대로 남아요.' : '진행 중인 운동을 취소할까요? 오늘 입력한 내용이 삭제돼요.')) return;
+    const id=active.id, backup=active.backup; active=null; stopRest(); clearTimeout(saveTimer);
+    if(editing) db.collection('workouts').doc(id).set({ ...backup, status:'done', updatedAt:TS() }).then(()=>toast('원래 기록으로 되돌렸어요')).catch(()=>{});
+    else db.collection('workouts').doc(id).delete().catch(()=>{});
     renderSession(); renderWorkout();
   }
   else if(act==='finish') finishSession();
 });
 
-/* ---------- 운동 완료 & 요약 ---------- */
-function buildSummary(s){
+/* ---------- 운동 리포트 (완료 직후 + 지난 운동 상세 공용) ---------- */
+// w: { id, date, part, entries:[{exId,name,sets:[{w,r}],nextPlan,kind,assist}] } — 완료한 세트만
+function sessionAnalysis(w){
   const items=[]; let vol=0, prs=0, ups=0, comps=0;
-  for(const en of s.entries){
-    const sets=en.sets.filter(x=>x.done).map(x=>({ w:num(x.w)||0, r:Math.round(num(x.r)||0) })).filter(x=>x.r>0);
+  for(const en of (w.entries||[])){
+    const sets=(en.sets||[]).filter(x=>x.done!==false).map(x=>({ w:num(x.w)||0, r:Math.round(num(x.r)||0) })).filter(x=>x.r>0);
     if(!sets.length) continue;
-    const assist=isAssist(en.exId,en), m=metrics(effSets(sets, assist, s.date)); vol+=m.vol;
-    const h=historyOf(en.exId).filter(x=>x.wid!==s.id), prev=h[h.length-1];
-    const t= (en.kind==='deload'||en.kind==='down') ? 'deload' : trendOf(m, prev&&prev.m);
+    const assist=isAssist(en.exId,en), m=metrics(effSets(sets, assist, w.date)); vol+=m.vol;
+    // 이 운동 '직전' 기록 (지난 운동을 볼 때도 그 당시 기준으로 비교)
+    const hAll=historyOf(en.exId), idx=hAll.findIndex(x=>x.wid===w.id);
+    const before = idx>=0 ? hAll.slice(0,idx) : hAll.filter(x=>x.wid!==w.id && x.date<=w.date);
+    const prev=before[before.length-1];
+    const t = (en.kind==='deload'||en.kind==='down') ? 'deload' : trendOf(m, prev&&prev.m);
     const pr=[];
-    if(h.length){
-      const bTop=Math.max(...h.map(x=>x.m.top)), bE=Math.max(...h.map(x=>x.m.best));
-      if(assist){ const minA=Math.min(...sets.map(x=>x.w)), prevMin=Math.min(...h.flatMap(x=>x.sets.map(y=>y.w)));
+    if(before.length){
+      const bTop=Math.max(...before.map(x=>x.m.top)), bE=Math.max(...before.map(x=>x.m.best));
+      if(assist){ const minA=Math.min(...sets.map(x=>x.w)), prevMin=Math.min(...before.flatMap(x=>x.sets.map(y=>y.w)));
         if(minA<prevMin-0.001) pr.push(minA===0?'첫 맨몸 성공':'최소 보조'); else if(m.best>bE*1.01) pr.push('최다 횟수'); }
       else if(m.top>0 && m.top>bTop+0.5) pr.push('최고 무게');
       else if(m.best>bE*1.01) pr.push(m.top>0?'1RM 신기록':'최다 횟수');
     }
     prs+=pr.length; if(t!=='new' && t!=='deload'){ comps++; if(t==='up') ups++; }
-    items.push({ name:en.name, sets, assist, prev, t, pr });
+    items.push({ exId:en.exId, name:en.name, sets, assist, body: !assist && loadOf(en.exId,en)==='body', plan: planOf(en), prev, t, pr,
+                 cur:{ sets, assist, name:en.name } });
   }
-  const prevPart=doneWorkouts().filter(w=>w.part===s.part && w.id!==s.id && w.date<=s.date).pop();
+  const prevPart=doneWorkouts().filter(x=>x.part===w.part && x.id!==w.id && x.date<=w.date && (x.date<w.date || (x.finishedAt||0)<(w.finishedAt||Infinity))).pop();
   return { items, vol, prs, ups, comps, pvol: prevPart ? (prevPart.volume||0) : null };
 }
+// 기존 이름 유지 (다른 곳에서 사용)
+function buildSummary(s){ return sessionAnalysis({ ...s, entries:s.entries.map(e=>({ ...e, sets:e.sets.filter(x=>x.done) })) }); }
+
+const TREND_CHIP = { up:['g','📈 과부하 성공'], same:['y','➡️ 지난번과 같음'], down:['r','📉 지난번보다 줄었어요'], new:['n','🆕 첫 기록'], deload:['y','🔄 무게를 낮춘 날'] };
+function sessionReportHtml(w, sm, editable){
+  let e,t,m;
+  if(sm.prs>0){ e='🏆'; t=`신기록 ${sm.prs}개!`; }
+  else if(sm.comps && sm.ups/sm.comps>=.5){ e='📈'; t='과부하 성공!'; }
+  else if(sm.comps && sm.ups>0){ e='💪'; t='조금씩 전진 중'; }
+  else if(sm.comps){ e='🔋'; t='오늘은 버틴 날'; }
+  else { e='🌱'; t='첫 기록 완료!'; }
+  m = sm.comps ? `비교할 수 있는 <b>${sm.comps}종목 중 ${sm.ups}종목</b>이 지난번보다 늘었어요` : '다음 운동부터 지난번과 비교해서 알려드려요';
+  let vol=`총 볼륨 <b>${fmtVol(sm.vol)}kg</b>`;
+  if(sm.pvol){ const d=(sm.vol-sm.pvol)/sm.pvol*100; vol+=` · 지난 ${partName(w.part)} 대비 <b class="${d>=0?'down':'up'}">${d>=0?'+':''}${d.toFixed(1)}%</b>`; }
+  const wTxt=(it,x)=> it.body ? '맨몸' : it.assist ? (x.w>0?`보조 ${fmtK(x.w)} kg`:'맨몸') : `${fmtK(x.w)} kg`;
+  return `<div class="sr-top">${partEmoji(w.part)} ${partName(w.part)} <span>${longDate(w.date)}</span></div>
+    <div class="sum-head"><div class="e">${e}</div><div class="t">${t}</div><div class="m">${m}</div></div>
+    <div class="sum-vol">${vol}</div>
+    ${sm.items.map(it=>{ const [c,lbl]=TREND_CHIP[it.t]||TREND_CHIP.same;
+      return `<div class="sr-ex">
+        <div class="sr-h"><b>${esc(it.name)}</b><span class="sr-chip c${c}">${lbl}</span></div>
+        ${it.pr.length?`<div style="margin:2px 0 4px">${it.pr.map(p=>`<span class="pr">🏆 ${p}</span>`).join(' ')}</div>`:''}
+        <div class="sr-body">
+          <div class="sr-sets">${it.sets.map((x,k)=>`<div class="pv-row"><span class="pv-k">[${k+1} set]</span>${wTxt(it,x)} x ${x.r} reps</div>`).join('')}
+            <div class="pv-row"><span class="pv-k">[다음]</span>${editable
+              ? `<span class="sr-plans" data-ex="${it.exId}">${PLAN_ORDER.map(v=>`<button class="sr-plan pv-${v} ${it.plan===v?'on':''}" data-v="${v}">${PLAN_LABEL[v]}</button>`).join('')}</span>`
+              : (it.plan?`<b class="pv-plan pv-${it.plan}">${PLAN_LABEL[it.plan]}</b>`:'<span style="color:var(--sub)">선택 안 함</span>')}</div></div>
+          ${it.prev ? `<div class="cmp sr-cmp"><div><span>지난번</span><b>${cmpText(it.prev)}</b></div><div class="now"><span>오늘</span><b>${cmpText(it.cur)}</b></div></div>` : ''}
+        </div></div>`; }).join('')}`;
+}
+
 function finishSession(){
   const doneSets=active.entries.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
   if(!doneSets){ toast('완료(✓)한 세트가 없어요'); return; }
   const left=active.entries.reduce((a,e)=>a+e.sets.filter(s=>!s.done).length,0);
   if(!confirm(left ? `체크하지 않은 ${left}세트는 기록되지 않아요. 운동을 완료할까요?` : '운동을 완료할까요?')) return;
   const sm=buildSummary(active);
-  const { id, ...data }=active;
+  const { id, backup, ...data }=active;      // backup: '다시 열어서 수정' 할 때 보관한 원래 기록
   data.entries=data.entries.map(e=>({ ...e, nextPlan: e.nextPlan||null, difficulty: null,
                                         sets:e.sets.filter(s=>s.done).map(s=>({ w:num(s.w)||0, r:Math.round(num(s.r)), done:true })) }))
                            .filter(e=>e.sets.length);
@@ -1823,23 +1885,11 @@ function finishSession(){
   active=null; selectedPart=null; userPicked=false; stopRest(); clearTimeout(saveTimer);
   db.collection('workouts').doc(id).set({ ...data, device:DEVICE_ID, updatedAt:TS() })
     .catch(e=>{ console.error(e); toast('저장 실패: '+(e.code||e.message)); });
-  renderSession(); showSummary(sm, data.part);
+  renderSession(); showSummary(sm, { id, ...data });
   window.scrollTo(0,0);
 }
-function showSummary(sm, part){
-  let e,t,m;
-  if(sm.prs>0){ e='🏆'; t=`신기록 ${sm.prs}개!`; m='오늘 몸이 한 단계 올라섰어요. 이 기분 기억해두세요!'; }
-  else if(sm.comps && sm.ups/sm.comps>=.5){ e='📈'; t='과부하 성공!'; m=`${sm.comps}개 운동 중 ${sm.ups}개에서 지난번을 넘었어요. 근육이 자랄 이유를 줬어요.`; }
-  else if(sm.comps && sm.ups>0){ e='💪'; t='조금씩 전진 중'; m=`${sm.ups}개 운동에서 성장했어요. 나머지는 다음에 딱 1회만 더 해봐요.`; }
-  else if(sm.comps){ e='🔋'; t='오늘은 버틴 날'; m='매번 늘 수는 없어요. 같은 무게를 해낸 것도 다음 증량의 발판이에요. 잠과 단백질도 챙겨요.'; }
-  else { e='🌱'; t='첫 기록 완료!'; m='오늘 기록이 다음 점진적 과부하의 기준점이 돼요.'; }
-  let vol=`총 볼륨 <b>${fmtVol(sm.vol)}kg</b>`;
-  if(sm.pvol){ const d=(sm.vol-sm.pvol)/sm.pvol*100; vol+=` · 지난 ${partName(part)} 대비 <b class="${d>=0?'down':'up'}">${d>=0?'+':''}${d.toFixed(1)}%</b>`; }
-  const icon={ up:'📈', same:'➡️', down:'📉', new:'🆕', deload:'🔄' };
-  $('summaryBody').innerHTML=`<div class="sum-head"><div class="e">${e}</div><div class="t">${t}</div><div class="m">${m}</div></div>
-    <div class="sum-vol">${vol}</div>
-    ${sm.items.map(it=>`<div class="sum-item"><div class="nm">${icon[it.t]} ${esc(it.name)}${it.pr.map(p=>`<span class="pr">🏆 ${p}</span>`).join('')}</div>
-      <div class="sub">오늘 ${setsText(it.sets, it.assist)}${it.prev?`<br>지난번 ${setsText(it.prev.sets, it.prev.assist)}`:''}</div></div>`).join('')}`;
+function showSummary(sm, w){
+  $('summaryBody').innerHTML = sessionReportHtml(w, sm, false);
   openModal('summaryModal');
 }
 
@@ -1863,23 +1913,34 @@ $('restStop').onclick=stopRest;
 let viewingWid=null;
 function openSess(wid){
   const w=workouts.find(x=>x.id===wid); if(!w) return; viewingWid=wid;
-  $('sessBody').innerHTML=`<h3>${partEmoji(w.part)} ${partName(w.part)}</h3>
-    <div style="font-size:13px;color:var(--sub);margin:-10px 0 10px">${longDate(w.date)} · 총 볼륨 ${fmtVol(w.volume||0)}kg</div>
-    <ul class="hist">${(w.entries||[]).map(e=>{ const sets=(e.sets||[]).map(s=>({w:num(s.w)||0,r:num(s.r)||0}));
-      return `<li><span><b>${esc(e.name)}</b></span><span class="d">${setsText(sets, isAssist(e.exId,e))}</span></li>`; }).join('')}</ul>`;
+  histCache=null;
+  $('sessBody').innerHTML = sessionReportHtml(w, sessionAnalysis(w), true)
+    + '<div class="cal-note" style="margin-top:8px">[다음]을 누르면 바로 바꿀 수 있어요</div>';
   openModal('sessModal');
 }
+// 지난 기록의 [다음] 계획 바로 바꾸기
+$('sessBody').addEventListener('click', e=>{
+  const b=e.target.closest('.sr-plan'); if(!b || !viewingWid) return;
+  const w=workouts.find(x=>x.id===viewingWid); if(!w) return;
+  const exId=b.closest('.sr-plans').dataset.ex, v=b.dataset.v;
+  const entries=(w.entries||[]).map(en=> en.exId!==exId ? en : { ...en, nextPlan: planOf(en)===v ? null : v, difficulty:null });
+  w.entries=entries; histCache=null;
+  db.collection('workouts').doc(w.id).set({ entries }, { merge:true }).catch(err=>toast('저장 실패: '+(err.code||err.message)));
+  openSess(w.id); toast('다음 계획을 바꿨어요');
+});
 $('sessionList').addEventListener('click', e=>{ const li=e.target.closest('li[data-w]'); if(li) openSess(li.dataset.w); });
 $('sessDelete').onclick=()=>{
   if(!viewingWid || !confirm('이 운동 기록을 삭제할까요?')) return;
+  const w=workouts.find(x=>x.id===viewingWid);
+  if(w){ const { id, ...data }=w; db.collection('trash').doc(id).set({ ...data, deletedAt:Date.now() }).catch(()=>{}); }   // 실수 대비 보관
   db.collection('workouts').doc(viewingWid).delete().then(()=>toast('삭제했어요')).catch(e=>toast('삭제 실패: '+(e.code||e.message)));
   closeModal('sessModal');
 };
 $('sessReopen').onclick=()=>{
   if(active){ toast('진행 중인 운동을 먼저 완료하거나 취소해주세요'); return; }
   const w=workouts.find(x=>x.id===viewingWid); if(!w) return;
-  const { id, ...data }=w;
-  active={ id, ...data, status:'in_progress', startedAt:Date.now(),
+  const { id, updatedAt, device, ...data }=w;
+  active={ id, ...data, backup: JSON.parse(JSON.stringify(data)), status:'in_progress', startedAt:Date.now(),
            entries:(data.entries||[]).map(e=>({ ...e, sets:(e.sets||[]).map(s=>({ ...s, done:true })) })) };
   saveActive(true); closeModal('sessModal'); renderSession(); renderWorkout();
   window.scrollTo({ top: $('sessionArea').offsetTop-10, behavior:'smooth' });
