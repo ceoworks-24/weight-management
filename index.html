@@ -523,6 +523,17 @@
 
 <!-- ================= ① 오늘 ================= -->
 <div id="tab-today">
+  <!-- 달력 (체중·운동·러닝·단백질) -->
+  <section class="card">
+    <div class="cal-head">
+      <button id="uPrev" aria-label="이전 달">‹</button>
+      <b id="uMonth">-</b>
+      <button id="uNext" aria-label="다음 달">›</button>
+    </div>
+    <div class="cal-grid ucal" id="uCal"></div>
+    <div class="ulegend"><span><b class="down">76.0</b> 체중 (전날보다 <span class="down">↓</span><span class="up">↑</span>)</span><span><span class="lg-db"></span>웨이트 👟 러닝</span><span><i class="lg-pb"></i>단백질</span></div>
+    <div class="cal-note" id="uMonthSum" style="margin-top:6px"></div>
+  </section>
   <!-- 체중 (오늘) -->
   <section class="card" id="formCard">
     <h2>⚖️ 체중 <small class="h2-sub" id="twPrev"></small></h2>
@@ -568,23 +579,9 @@
   </section>
 </div><!-- /tab-today -->
 
-<!-- ================= ② 기록 ================= -->
-<div id="tab-record" style="display:none">
-  <section class="card">
-    <div class="cal-head">
-      <button id="uPrev" aria-label="이전 달">‹</button>
-      <b id="uMonth">-</b>
-      <button id="uNext" aria-label="다음 달">›</button>
-    </div>
-    <div class="cal-grid ucal" id="uCal"></div>
-    <div class="ulegend"><span><b class="down">76.0</b> 체중 (전날보다 <span class="down">↓</span><span class="up">↑</span>)</span><span><span class="lg-db"></span>웨이트 👟 러닝</span><span><i class="lg-pb"></i>단백질</span></div>
-    <div class="cal-note" id="uMonthSum" style="margin-top:6px"></div>
-  </section>
-  <section class="card" id="dayDetail"></section>
-</div><!-- /tab-record -->
 
-<!-- ================= ③ 분석 ================= -->
-<div id="tab-analysis" style="display:none">
+<!-- ================= ② 체중 관리 ================= -->
+<div id="tab-weight" style="display:none">
   <!-- 오늘의 평가 -->
   <section class="card">
     <h2>오늘의 평가</h2>
@@ -635,6 +632,10 @@
     </div>
   </section>
 
+</div><!-- /tab-weight -->
+
+<!-- ================= ③ 운동 기록 ================= -->
+<div id="tab-workout" style="display:none">
   <!-- 점진적 과부하 -->
   <section class="card">
     <h2>🏋️ 점진적 과부하 리포트</h2>
@@ -646,7 +647,7 @@
     <h2>🍗 단백질 <small class="h2-sub" id="ptAvg"></small></h2>
     <div id="protTrend"></div>
   </section>
-</div><!-- /tab-analysis -->
+</div><!-- /tab-workout -->
 </div>
 
 <!-- 설정 모달 -->
@@ -690,10 +691,18 @@
 
 <!-- 하단 탭 -->
 <nav class="tabbar">
-  <button data-tab="today" class="active"><span class="i">☀️</span>오늘</button>
-  <button data-tab="record"><span class="i">📅</span>기록</button>
-  <button data-tab="analysis"><span class="i">📊</span>분석</button>
+  <button data-tab="today" class="active"><span class="i">⭐</span>오늘</button>
+  <button data-tab="weight"><span class="i">⚖️</span>체중 관리</button>
+  <button data-tab="workout"><span class="i">🏋️</span>운동 기록</button>
 </nav>
+
+<!-- 📅 날짜 상세 (달력에서 날짜를 누르면) -->
+<div class="modal-bg" id="dayModal">
+  <div class="modal">
+    <button class="x-close" data-close="dayModal">✕</button>
+    <div id="dayDetail"></div>
+  </div>
+</div>
 
 <!-- ⚙️ 설정 메뉴 -->
 <div class="modal-bg" id="menuModal">
@@ -1287,7 +1296,7 @@ renderAll();
    10. 탭 전환
    ========================================================= */
 let currentTab = 'today';
-const TAB_TITLE = { today:null, record:'기록', analysis:'분석' };
+const TAB_TITLE = { today:null, weight:'⚖️ 체중 관리', workout:'🏋️ 운동 기록' };
 function switchTab(t){
   if(!TAB_TITLE.hasOwnProperty(t)) t='today';
   currentTab = t;
@@ -1298,8 +1307,8 @@ function switchTab(t){
   $('dday').style.display = t==='today' ? '' : 'none';
   document.body.classList.toggle('off-today', t!=='today');
   try{ localStorage.setItem('wm_tab', t); }catch(e){}
-  if(t==='analysis' && chart) chart.resize();
-  if(t==='record' && window.renderUCal) renderUCal();
+  if(t==='weight' && chart) chart.resize();
+  if(t==='today' && window.renderUCal) renderUCal();
   window.scrollTo(0,0);
 }
 document.querySelector('.tabbar').addEventListener('click', e=>{
@@ -2379,7 +2388,7 @@ function renderProt(){
   $('pFavs').innerHTML = protSettings.favs.map(f=>`<button class="pchip pfav" data-id="${f.id}">🍗 ${esc(f.short||f.name)} <small>+${fmtG(f.g)}g</small></button>`).join('')
     + `<button class="pchip g p-add" data-k="${k}">+ 음식 추가</button>`;
   $('pItems').innerHTML = protItems(k).length ? protItemsHtml(k) : '';
-  if(window.renderUCal && currentTab==='record') renderUCal();
+  if(window.renderUCal) renderUCal();
   renderProtTrend();
 }
 // 항목 양 바꾸기 / 삭제 / 단골 추가 / 음식 추가 열기 (오늘 카드·기록 상세 공통)
@@ -2401,6 +2410,7 @@ document.addEventListener('click', e=>{
 /* ---------- 음식 추가 창 ---------- */
 let fm={ k:null, meal:'lunch', src:'rest', cat:'전체', q:'' };
 function openFood(k){
+  closeModal('dayModal');
   fm={ k, meal:defaultMeal(k), src: defaultMeal(k)==='lunch' ? 'rest' : 'home', cat:'전체', q:'' };
   $('fSearch').value=''; $('fdName').value=''; $('fdG').value='';
   renderFood(); openModal('foodModal');
@@ -2532,7 +2542,7 @@ function renderUCal(){
   }
   $('uCal').innerHTML=html;
   $('uMonthSum').textContent=`이번 달 웨이트 ${wc}회 · 러닝 ${rc}회 · 단백질 목표 달성 ${pc}일`;
-  renderDayDetail();
+  if($('dayModal').classList.contains('show')) renderDayDetail();
 }
 function renderDayDetail(){
   const k=uSel, r=recordOf(k), p=prevRecord(k), ws=doneWorkouts().filter(w=>w.date===k), run=runs.has(k);
@@ -2541,7 +2551,7 @@ function renderDayDetail(){
   if(r){ const df=p?r2(r.weight-p.weight):null;
     wRow=`<b>${fmtW(r.weight)}kg</b> ${df!=null?`<span class="${df<0?'down':df>0?'up':'flat'}">${df<0?'▼':df>0?'▲':''}${fmtW(Math.abs(df))}</span>`:''}`; }
   else wRow='<span class="dd-none">기록 없음</span>';
-  $('dayDetail').innerHTML = `<h2>${longDate(k)}</h2>
+  $('dayDetail').innerHTML = `<h3>${longDate(k)}</h3>
     <div class="dd-row"><div class="dd-k">⚖️ 체중</div><div class="dd-v">${wRow}
       ${future?'':`<div class="dd-w"><input type="text" inputmode="decimal" id="ddW" placeholder="${r?fmtW(r.weight):'체중'}"><span>kg</span>
         <button class="mini" id="ddWSave">${r?'수정':'저장'}</button>${r?'<button class="mini dd-del" id="ddWDel">삭제</button>':''}</div>`}</div></div>
@@ -2556,8 +2566,7 @@ function renderDayDetail(){
 }
 $('uCal').addEventListener('click', e=>{
   const c=e.target.closest('.day[data-k]'); if(!c || c.classList.contains('future')) return;
-  uSel=c.dataset.k; renderUCal();
-  if(window.innerWidth<700) $('dayDetail').scrollIntoView({ behavior:'smooth', block:'start' });
+  uSel=c.dataset.k; openModal('dayModal'); renderUCal(); renderDayDetail();
 });
 $('uPrev').onclick=()=>{ uM--; if(uM<0){ uM=11; uY--; } renderUCal(); };
 $('uNext').onclick=()=>{ uM++; if(uM>11){ uM=0; uY++; } renderUCal(); };
@@ -2576,7 +2585,7 @@ $('dayDetail').addEventListener('click', async e=>{
     return;
   }
   if(e.target.id==='ddRun'){ toggleRun(k); return; }
-  const wo=e.target.closest('.dd-wo'); if(wo) openSess(wo.dataset.w);
+  const wo=e.target.closest('.dd-wo'); if(wo){ closeModal('dayModal'); openSess(wo.dataset.w); }
 });
 $('dayDetail').addEventListener('keydown', e=>{ if(e.target.id==='ddW' && e.key==='Enter') $('ddWSave').click(); });
 window.renderUCal=renderUCal;
@@ -2587,7 +2596,7 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 }
 
 /* 시작 탭 */
-(function(){ let t='today'; try{ t=localStorage.getItem('wm_tab')||'today'; }catch(e){} switchTab(t); })();
+(function(){ let t='today'; try{ t=localStorage.getItem('wm_tab')||'today'; }catch(e){} switchTab(t); })();   // 예전 탭 이름(record/analysis)이면 오늘 탭으로
 renderWorkout();
 </script>
 </body>
