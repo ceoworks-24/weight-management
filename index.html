@@ -2408,12 +2408,40 @@ function protItemsHtml(k, editable=true){
         <span class="pit-g">${Math.round(itemG(it))}g</span>${editable?'<button class="pit-x" title="삭제">×</button>':''}</div>`).join('')}</div>`;
   }).join('');
 }
-// 남은 양을 첫 번째 단골 음식으로 채우려면 몇 개? (반 개 단위)
+// 남은 양 채우기 안내 — 현실적인 간식·식품으로 1~2가지 조합을 제안
+//  가공육(소시지·육포·햄)은 나트륨·인산염 첨가물 때문에 제외 (신장 부담 고려)
+const FILL_POOL = [
+  { name:'닭가슴살', u:'팩', g:24, max:2 },
+  { name:'그릭요거트', u:'컵', g:15, max:1 },
+  { name:'삶은 계란', u:'개', g:6, max:3 },
+  { name:'고단백 두유', u:'팩', g:11, max:1 },
+  { name:'두부', u:'반 모', g:12, max:1, fixed:true },
+  { name:'우유', u:'잔', g:6, max:1 },
+];
+function fillOpts(){
+  // 단골에 닭가슴살 등이 있으면 그 이름·g으로 대체
+  const fav=[...protSettings.favs].filter(f=>num(f.g)>=15).sort((a,b)=>num(b.g)-num(a.g))[0];
+  return FILL_POOL.map(o=> o.name==='닭가슴살' && fav ? { ...o, name:fav.short||fav.name, g:num(fav.g) } : o);
+}
+function fillTxt(o,n){ return o.fixed ? `${o.name} ${o.u}` : `${o.name} ${n}${o.u}`; }
+// 받침 있으면 '이면', 없으면 '면'
+function josaMyeon(word){ const c=String(word).trim().slice(-1).charCodeAt(0); return (c>=0xAC00 && c<=0xD7A3 && (c-0xAC00)%28) ? '이면' : '면'; }
+function bestSnack(left){
+  const opts=fillOpts(), cands=[];
+  opts.forEach((a,i)=>{ for(let n=1;n<=a.max;n++){
+    cands.push({ parts:[[a,n]], g:a.g*n });
+    opts.forEach((b,j)=>{ if(j<=i) return; for(let m=1;m<=b.max;m++) cands.push({ parts:[[a,n],[b,m]], g:a.g*n+b.g*m }); });
+  }});
+  const ok=cands.filter(c=>c.g>=left).sort((x,y)=>(x.g-left)-(y.g-left) || x.parts.length-y.parts.length);
+  return ok[0] ? { txt: ok[0].parts.map(([o,n])=>fillTxt(o,n)).join(' + '), g: Math.round(ok[0].g) } : null;
+}
 function protFillTip(left){
-  const f=protSettings.favs[0]; if(!f || !(f.g>0) || left<=0) return '';
-  const n=Math.ceil(left/f.g*2)/2, u=/팩/.test(f.unit||'')?'팩':'개';
-  const amt = n===0.5 ? `반 ${u}` : n%1 ? `${Math.floor(n)}${u} 반` : `${n}${u}`;
-  return `${f.short||f.name} ${amt}이면 채워요`;
+  if(left<=0) return '';
+  const s1=bestSnack(left);
+  if(s1) return `${s1.txt}${josaMyeon(s1.txt)} 채워요 (약 ${s1.g}g)`;
+  const s2=bestSnack(left-30);                       // 식사 한 끼(약 30g) + 간식
+  if(s2) return `고기·생선·두부 위주 식사 한 끼 + ${s2.txt}${josaMyeon(s2.txt)} 채워요`;
+  return '아직 많이 남았어요 · 남은 끼니를 고기·생선·두부 위주로 챙겨요';
 }
 function renderProt(){
   const k=todayKey(), goal=protSettings.goal||150, tot=protTotal(k), left=Math.max(0, goal-tot), pct=Math.min(100, tot/goal*100);
