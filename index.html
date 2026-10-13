@@ -453,6 +453,8 @@
   .menu-item{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:12px;padding:13px 14px;margin-bottom:8px;font-size:15px;font-weight:700;font-family:inherit;color:var(--text)}
   .menu-item span{display:block;font-size:12px;color:var(--sub);font-weight:500;margin-top:2px}
   /* 음식 추가 */
+  .range-seg{margin:-2px 0 12px}
+  .range-seg button{flex:1;white-space:nowrap;font-size:13px;padding:7px 0}
   .seg button.on{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
   .seg button{flex:1;font-family:inherit}
   .fm-meal,.fm-src{margin-bottom:8px}
@@ -512,6 +514,25 @@
   #startCard .part span{font-size:11px}
   #startCard .part .star{font-size:10px}
   #startCard .rec{padding:12px 14px}
+  .ps-tabs{margin:4px 0 6px}
+  .ps-tabs button{font-size:12.5px;padding:7px 0;white-space:nowrap}
+  .ps-desc{font-size:12px;color:var(--sub);margin-bottom:6px}
+  #psList{max-height:46vh;overflow-y:auto;border-top:1px solid var(--line)}
+  .pe{padding:9px 0;border-bottom:1px solid var(--line)}
+  .pe-l{display:flex;gap:6px;align-items:center}
+  .pe-l + .pe-l{margin-top:6px}
+  .pe input,.pe select{height:36px;border:1.5px solid var(--line);border-radius:8px;padding:0 8px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);min-width:0}
+  .pe input:focus,.pe select:focus{border-color:var(--primary);outline:none}
+  .pe-name{flex:1;font-weight:700}
+  .pe-g{width:58px;text-align:center;font-weight:700}
+  .pe-u{font-size:12.5px;color:var(--sub)}
+  .pe-unit{flex:1}
+  .pe-cat{flex:1}
+  .pe-short{flex:1}
+  .pe button{flex:0 0 auto;border:none;background:var(--bg);width:34px;height:34px;border-radius:8px;color:#4a5550;font-size:13px}
+  .pe button:disabled{opacity:.3}
+  .pe-x{color:var(--up) !important}
+  .ps-tools{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -540,7 +561,7 @@
   </section>
   <!-- 체중 (오늘) -->
   <section class="card" id="formCard">
-    <h2><span><svg class="scale-ic" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5" fill="#e9f5ef" stroke="#0f9f6e" stroke-width="1.8"/><path d="M7.2 9.6a6 6 0 0 1 9.6 0" fill="none" stroke="#0f9f6e" stroke-width="1.8" stroke-linecap="round"/><path d="M12 10.8l1.6-2.4" stroke="#0f9f6e" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.3" cy="17" r="1.1" fill="#0f9f6e"/><circle cx="15.7" cy="17" r="1.1" fill="#0f9f6e"/></svg> 체중</span> <small class="h2-sub" id="twPrev"></small></h2>
+    <h2>⚖️ 체중 <small class="h2-sub" id="twPrev"></small></h2>
     <input type="hidden" id="inDate">
     <div class="tw-row">
       <div class="weight-input tw-in">
@@ -619,14 +640,14 @@
 
   <!-- 체중 그래프 -->
   <section class="card">
-    <h2>체중 변화
-      <div class="seg" id="rangeSeg">
-        <button data-r="14">2W</button>
-        <button data-r="30" class="active">1M</button>
-        <button data-r="90">3M</button>
-        <button data-r="all">전체</button>
-      </div>
-    </h2>
+    <h2>체중 변화</h2>
+    <div class="seg range-seg" id="rangeSeg">
+      <button data-r="7">1주</button>
+      <button data-r="14">2주</button>
+      <button data-r="30" class="active">1개월</button>
+      <button data-r="90">3개월</button>
+      <button data-r="all">전체</button>
+    </div>
     <div class="chart-box"><canvas id="chart"></canvas></div>
     <div class="goal-note" id="goalNote"></div>
     <div class="chart-opts">
@@ -696,7 +717,7 @@
 <!-- 하단 탭 -->
 <nav class="tabbar">
   <button data-tab="today" class="active"><span class="i">⭐</span>오늘</button>
-  <button data-tab="weight"><span class="i"><svg class="scale-ic" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5" fill="#e9f5ef" stroke="#0f9f6e" stroke-width="1.8"/><path d="M7.2 9.6a6 6 0 0 1 9.6 0" fill="none" stroke="#0f9f6e" stroke-width="1.8" stroke-linecap="round"/><path d="M12 10.8l1.6-2.4" stroke="#0f9f6e" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.3" cy="17" r="1.1" fill="#0f9f6e"/><circle cx="15.7" cy="17" r="1.1" fill="#0f9f6e"/></svg></span>체중 관리</button>
+  <button data-tab="weight"><span class="i">⚖️</span>체중 관리</button>
   <button data-tab="workout"><span class="i">🏋️</span>운동 기록</button>
 </nav>
 
@@ -713,7 +734,7 @@
   <div class="modal">
     <button class="x-close" data-close="menuModal">✕</button>
     <h3>설정</h3>
-    <button class="menu-item" id="mGoal"><svg class="scale-ic" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5" fill="#e9f5ef" stroke="#0f9f6e" stroke-width="1.8"/><path d="M7.2 9.6a6 6 0 0 1 9.6 0" fill="none" stroke="#0f9f6e" stroke-width="1.8" stroke-linecap="round"/><path d="M12 10.8l1.6-2.4" stroke="#0f9f6e" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.3" cy="17" r="1.1" fill="#0f9f6e"/><circle cx="15.7" cy="17" r="1.1" fill="#0f9f6e"/></svg> 체중 목표 설정<span>목표 체중 · 날짜 · 시작 체중</span></button>
+    <button class="menu-item" id="mGoal">⚖️ 체중 목표 설정<span>목표 체중 · 날짜 · 시작 체중</span></button>
     <button class="menu-item" id="mRoutine">🏋️ 운동 루틴 관리<span>루틴별 운동 · 휴식 시간</span></button>
     <button class="menu-item" id="mProtein">🍗 단백질 설정<span>하루 목표 · 단골 음식</span></button>
   </div>
@@ -746,11 +767,13 @@
     <button class="x-close" data-close="protSetModal">✕</button>
     <h3>단백질 설정</h3>
     <div class="field"><label for="psGoal">하루 목표 (g)</label><input type="text" id="psGoal" inputmode="numeric"></div>
-    <div class="field"><label>단골 음식 (오늘 화면의 빠른 버튼)</label><div id="psFavs"></div></div>
-    <div class="ps-add">
-      <input type="text" id="psName" placeholder="이름 (예: 그릭요거트)" maxlength="20">
-      <input type="text" id="psG" placeholder="g" inputmode="decimal">
-      <button class="btn gray" id="psAdd">추가</button>
+    <div class="seg ps-tabs" id="psTabs"></div>
+    <div class="ps-desc" id="psDesc"></div>
+    <div id="psList"></div>
+    <div class="ps-tools">
+      <button class="mini" id="psAddRow">+ 추가</button>
+      <button class="mini" id="psSort">가나다순 정렬</button>
+      <button class="mini" id="psReset">기본 목록으로</button>
     </div>
     <button class="btn" id="psSave" style="width:100%;margin-top:14px">저장</button>
   </div>
@@ -1300,8 +1323,7 @@ renderAll();
    10. 탭 전환
    ========================================================= */
 let currentTab = 'today';
-const SCALE_IC = '<svg class="scale-ic" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5" fill="#e9f5ef" stroke="#0f9f6e" stroke-width="1.8"/><path d="M7.2 9.6a6 6 0 0 1 9.6 0" fill="none" stroke="#0f9f6e" stroke-width="1.8" stroke-linecap="round"/><path d="M12 10.8l1.6-2.4" stroke="#0f9f6e" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.3" cy="17" r="1.1" fill="#0f9f6e"/><circle cx="15.7" cy="17" r="1.1" fill="#0f9f6e"/></svg>';
-const TAB_TITLE = { today:null, weight:SCALE_IC+' 체중 관리', workout:'🏋️ 운동 기록' };
+const TAB_TITLE = { today:null, weight:'⚖️ 체중 관리', workout:'🏋️ 운동 기록' };
 function switchTab(t){
   if(!TAB_TITLE.hasOwnProperty(t)) t='today';
   currentTab = t;
@@ -2302,19 +2324,19 @@ const FOODS_REST = [
   ['김치찌개 백반',18,'1인분','한식'],['된장찌개 백반',15,'1인분','한식'],['순두부찌개 정식',18,'1인분','한식'],
   ['부대찌개',22,'1인분','한식'],['비빔밥',15,'1그릇','한식'],['돌솥비빔밥',16,'1그릇','한식'],
   ['제육덮밥',25,'1그릇','한식'],['김치볶음밥',12,'1그릇','한식'],['닭볶음탕',30,'1인분','한식'],['오므라이스',15,'1그릇','한식'],
-  ['순대국밥',25,'1그릇','국·탕'],['돼지국밥',28,'1그릇','국·탕'],['뼈해장국',30,'1그릇','국·탕'],['설렁탕',25,'1그릇','국·탕'],
-  ['갈비탕',28,'1그릇','국·탕'],['육개장',22,'1그릇','국·탕'],['삼계탕',45,'1그릇','국·탕'],['곰탕',25,'1그릇','국·탕'],
-  ['콩나물국밥',12,'1그릇','국·탕'],['감자탕',30,'1인분','국·탕'],
-  ['삼겹살',34,'1인분(200g)','고기'],['목살',36,'1인분(200g)','고기'],['닭갈비',32,'1인분','고기'],['소불고기',30,'1인분','고기'],
-  ['차돌박이',28,'1인분(150g)','고기'],['족발',35,'1인분','고기'],
-  ['김밥',8,'1줄','분식'],['참치김밥',12,'1줄','분식'],['라면',10,'1그릇','분식'],['떡볶이',8,'1인분','분식'],
-  ['칼국수',15,'1그릇','분식'],['잔치국수',10,'1그릇','분식'],['비빔냉면',12,'1그릇','분식'],['물냉면',10,'1그릇','분식'],
-  ['쫄면',10,'1그릇','분식'],['수제비',12,'1그릇','분식'],
+  ['순대국밥',25,'1그릇','국/탕'],['돼지국밥',28,'1그릇','국/탕'],['뼈해장국',30,'1그릇','국/탕'],['설렁탕',25,'1그릇','국/탕'],
+  ['갈비탕',28,'1그릇','국/탕'],['육개장',22,'1그릇','국/탕'],['삼계탕',45,'1그릇','국/탕'],['곰탕',25,'1그릇','국/탕'],
+  ['콩나물국밥',12,'1그릇','국/탕'],['감자탕',30,'1인분','국/탕'],
+  ['삼겹살',34,'1인분(200g)','한식'],['목살',36,'1인분(200g)','한식'],['닭갈비',32,'1인분','한식'],['소불고기',30,'1인분','한식'],
+  ['차돌박이',28,'1인분(150g)','한식'],['족발',35,'1인분','한식'],
+  ['김밥',8,'1줄','한식'],['참치김밥',12,'1줄','한식'],['라면',10,'1그릇','한식'],['떡볶이',8,'1인분','한식'],
+  ['칼국수',15,'1그릇','한식'],['잔치국수',10,'1그릇','한식'],['비빔냉면',12,'1그릇','한식'],['물냉면',10,'1그릇','한식'],
+  ['쫄면',10,'1그릇','한식'],['수제비',12,'1그릇','한식'],
   ['짜장면',15,'1그릇','중식'],['짬뽕',20,'1그릇','중식'],['볶음밥',15,'1그릇','중식'],['탕수육',25,'1인분','중식'],['마파두부밥',18,'1그릇','중식'],
   ['돈까스',28,'1인분','일식'],['치즈돈까스',32,'1인분','일식'],['규동',25,'1그릇','일식'],['연어덮밥',25,'1그릇','일식'],
   ['초밥',22,'10피스','일식'],['우동',12,'1그릇','일식'],['카레라이스',15,'1그릇','일식'],['메밀소바',12,'1그릇','일식'],
-  ['닭가슴살 샐러드',25,'1그릇','기타'],['포케',25,'1그릇','기타'],['쌀국수',20,'1그릇','기타'],['햄버거 세트',25,'1세트','기타'],
-  ['파스타',15,'1접시','기타'],['서브웨이 샌드위치',20,'15cm','기타'],
+  ['닭가슴살 샐러드',25,'1그릇','기타'],['포케',25,'1그릇','기타'],['쌀국수',20,'1그릇','기타'],['햄버거 세트',25,'1세트','양식'],
+  ['파스타',15,'1접시','양식'],['서브웨이 샌드위치',20,'15cm','양식'],
 ];
 const FOODS_HOME = [
   ['밥',5,'1공기','밥·기본'],['현미밥',6,'1공기','밥·기본'],['계란',6,'1개','밥·기본'],['계란후라이',6,'1개','밥·기본'],
@@ -2328,12 +2350,20 @@ const FOODS_HOME = [
   ['된장찌개',8,'1그릇','요리·국'],['김치찌개',10,'1그릇','요리·국'],['순두부찌개',12,'1그릇','요리·국'],
   ['소고기미역국',8,'1그릇','요리·국'],['카레',10,'1그릇','요리·국'],
 ];
+const REST_CATS = ['한식','일식','중식','양식','국/탕','기타'];
+const HOME_CATS = ['밥·기본','반찬','요리·국'];
+const koSort = (a,b) => a.name.localeCompare(b.name, 'ko');
+// 기본 메뉴 (가나다순). 설정에서 고치면 그 목록이 Firestore에 저장되어 대신 쓰여요
+const DEF_REST = FOODS_REST.map(([name,g,unit,cat])=>({ name,g,unit,cat })).sort(koSort);
+const DEF_HOME = FOODS_HOME.map(([name,g,unit,cat])=>({ name,g,unit,cat })).sort(koSort);
 const DEFAULT_FAVS = [ { id:'fav1', name:'득근파티 청양렌치', short:'청양렌치', g:24, unit:'1팩' },
                        { id:'fav2', name:'득근파티 블랙페퍼', short:'블랙페퍼', g:24, unit:'1팩' } ];
 const MEALS = [ ['lunch','점심'], ['dinner','저녁'], ['snack','간식'] ];
 const MEAL_NAME = Object.fromEntries(MEALS);
 const PROT_SET = db.collection('settings').doc('protein');
-let protSettings = { goal:150, favs:DEFAULT_FAVS, custom:[] };
+let protSettings = { goal:150, favs:DEFAULT_FAVS, custom:[], rest:null, home:null };
+const menuRest = () => protSettings.rest || DEF_REST;
+const menuHome = () => protSettings.home || DEF_HOME;
 let protDays = {};                                 // { 'YYYY-MM-DD': [items] }
 
 const pid = () => Math.random().toString(36).slice(2,9);
@@ -2419,15 +2449,16 @@ document.addEventListener('click', e=>{
 
 /* ---------- 음식 추가 창 ---------- */
 let fm={ k:null, meal:'lunch', src:'rest', cat:'전체', q:'' };
+const MEAL_SRC = { lunch:'rest', dinner:'home', snack:'mine' };   // 점심=식당 메뉴, 저녁=집밥·반찬, 간식=내 음식
 function openFood(k){
   closeModal('dayModal');
-  fm={ k, meal:defaultMeal(k), src: defaultMeal(k)==='lunch' ? 'rest' : 'home', cat:'전체', q:'' };
+  fm={ k, meal:defaultMeal(k), src: MEAL_SRC[defaultMeal(k)], cat:'전체', q:'' };
   $('fSearch').value=''; $('fdName').value=''; $('fdG').value='';
   renderFood(); openModal('foodModal');
 }
 function foodsOf(src){
-  if(src==='rest') return FOODS_REST.map(([name,g,unit,cat])=>({ name,g,unit,cat }));
-  if(src==='home') return FOODS_HOME.map(([name,g,unit,cat])=>({ name,g,unit,cat }));
+  if(src==='rest') return menuRest().map(f=>({ ...f }));
+  if(src==='home') return menuHome().map(f=>({ ...f }));
   // 내 음식: 단골 + 직접 입력한 것 + 최근 30일에 먹은 것
   const out=[], seen=new Set();
   const push=(f,cat)=>{ if(seen.has(f.name)) return; seen.add(f.name); out.push({ ...f, cat }); };
@@ -2435,13 +2466,14 @@ function foodsOf(src){
   (protSettings.custom||[]).forEach(f=>push(f,'직접 입력'));
   const since=addDays(todayKey(),-30);
   Object.keys(protDays).sort().reverse().filter(k=>k>=since).forEach(k=>protDays[k].forEach(it=>push({ name:it.name, g:it.g, unit:it.unit },'최근')));
-  return out;
+  return out.sort(koSort);
 }
 function renderFood(){
   $('foodTitle').textContent = `${fm.k===todayKey()?'오늘':longDate(fm.k)} ${MEAL_NAME[fm.meal]}에 추가`;
   $('fMeal').innerHTML = MEALS.map(([m,l])=>`<button data-m="${m}" class="${fm.meal===m?'on':''}">${l}</button>`).join('');
   $('fSrc').innerHTML = [['rest','식당 메뉴'],['home','집밥·반찬'],['mine','내 음식']].map(([v,l])=>`<button data-s="${v}" class="${fm.src===v?'on':''}">${l}</button>`).join('');
-  const all=foodsOf(fm.src), cats=['전체',...new Set(all.map(f=>f.cat))];
+  const all=foodsOf(fm.src);
+  const cats = fm.src==='rest' ? ['전체',...REST_CATS] : ['전체',...new Set(all.map(f=>f.cat))];
   if(!cats.includes(fm.cat)) fm.cat='전체';
   $('fCats').innerHTML = cats.map(c=>`<button data-c="${c}" class="${fm.cat===c?'on':''}">${c}</button>`).join('');
   const q=fm.q.replace(/\s/g,'');
@@ -2451,7 +2483,7 @@ function renderFood(){
     : '<div class="pit-empty">찾는 음식이 없어요. 아래에서 직접 입력해주세요</div>';
   fm._all=all;
 }
-$('fMeal').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b){ fm.meal=b.dataset.m; renderFood(); } });
+$('fMeal').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b){ fm.meal=b.dataset.m; fm.src=MEAL_SRC[fm.meal]; fm.cat='전체'; renderFood(); } });
 $('fSrc').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b){ fm.src=b.dataset.s; fm.cat='전체'; renderFood(); } });
 $('fCats').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b){ fm.cat=b.dataset.c; renderFood(); } });
 $('fSearch').addEventListener('input', e=>{ fm.q=e.target.value.trim(); renderFood(); });
@@ -2471,30 +2503,68 @@ $('fdAdd').onclick=()=>{
   $('fdName').value=''; $('fdG').value='';
 };
 
-/* ---------- 단백질 설정 ---------- */
-let psFavs=[];
+/* ---------- 단백질 설정: 목표 + 메뉴 편집 (이름·단백질·단위·분류·순서) ---------- */
+const PS_TABS = [ ['favs','단골'], ['rest','식당 메뉴'], ['home','집밥·반찬'], ['custom','직접 입력'] ];
+const PS_DESC = { favs:'오늘 화면의 빠른 버튼이에요. 버튼 이름은 짧게 보여줄 이름이에요',
+                  rest:'점심(식당 메뉴) 목록이에요', home:'저녁(집밥·반찬) 목록이에요', custom:'음식 추가에서 직접 입력한 음식이에요' };
+let ps={ tab:'favs' };
 function openProtSet(){
-  $('psGoal').value=protSettings.goal||150; psFavs=protSettings.favs.map(f=>({...f}));
-  renderPsFavs(); openModal('protSetModal');
+  $('psGoal').value=protSettings.goal||150;
+  ps={ tab:'favs', favs:protSettings.favs.map(f=>({...f})), rest:menuRest().map(f=>({...f})),
+       home:menuHome().map(f=>({...f})), custom:(protSettings.custom||[]).map(f=>({...f})) };
+  renderPs(); openModal('protSetModal');
 }
-function renderPsFavs(){
-  $('psFavs').innerHTML = psFavs.length ? psFavs.map((f,i)=>`<div class="ps-row"><b>🍗 ${esc(f.name)}</b>
-      <input type="text" inputmode="decimal" value="${fmtG(f.g)}" data-i="${i}" class="ps-g"><span>g / ${esc(f.unit||'1회')}</span>
-      <button data-i="${i}" class="ps-x">✕</button></div>`).join('') : '<div class="pit-empty">단골 음식이 없어요</div>';
+function renderPs(){
+  $('psTabs').innerHTML = PS_TABS.map(([v,l])=>`<button data-t="${v}" class="${ps.tab===v?'on':''}">${l}</button>`).join('');
+  $('psDesc').textContent = PS_DESC[ps.tab];
+  $('psReset').style.display = (ps.tab==='rest'||ps.tab==='home') ? '' : 'none';
+  const list=ps[ps.tab], cats = ps.tab==='rest' ? REST_CATS : ps.tab==='home' ? HOME_CATS : null;
+  $('psList').innerHTML = list.length ? list.map((f,i)=>`<div class="pe" data-i="${i}">
+      <div class="pe-l"><input class="pe-name" value="${esc(f.name||'')}" placeholder="이름" maxlength="30">
+        <input class="pe-g" value="${f.g!=null?fmtG(f.g):''}" placeholder="0" inputmode="decimal"><span class="pe-u">g</span>
+        <button class="pe-x" title="삭제">✕</button></div>
+      <div class="pe-l"><input class="pe-unit" value="${esc(f.unit||'')}" placeholder="단위 (예: 1인분)" maxlength="12">
+        ${cats ? `<select class="pe-cat">${cats.map(c=>`<option ${f.cat===c?'selected':''}>${c}</option>`).join('')}</select>` : ''}
+        ${ps.tab==='favs' ? `<input class="pe-short" value="${esc(f.short||'')}" placeholder="버튼 이름" maxlength="10">` : ''}
+        <button class="pe-up" ${i===0?'disabled':''}>▲</button><button class="pe-dn" ${i===list.length-1?'disabled':''}>▼</button></div>
+    </div>`).join('') : '<div class="pit-empty">항목이 없어요. + 추가를 눌러주세요</div>';
 }
-$('psFavs').addEventListener('input', e=>{ if(e.target.classList.contains('ps-g')) psFavs[+e.target.dataset.i].g=num(e.target.value)||0; });
-$('psFavs').addEventListener('click', e=>{ const b=e.target.closest('.ps-x'); if(b){ psFavs.splice(+b.dataset.i,1); renderPsFavs(); } });
-$('psAdd').onclick=()=>{
-  const name=$('psName').value.trim(), g=num($('psG').value);
-  if(!name || g==null || g<=0){ toast('이름과 g을 입력해주세요'); return; }
-  psFavs.push({ id:pid(), name, short:name.length>8?name.slice(0,8):name, g, unit:'1회' });
-  $('psName').value=''; $('psG').value=''; renderPsFavs();
+$('psTabs').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b){ ps.tab=b.dataset.t; renderPs(); } });
+$('psList').addEventListener('input', e=>{
+  const row=e.target.closest('.pe'); if(!row) return; const f=ps[ps.tab][+row.dataset.i];
+  if(e.target.classList.contains('pe-name')) f.name=e.target.value;
+  if(e.target.classList.contains('pe-g')) f.g=num(e.target.value);
+  if(e.target.classList.contains('pe-unit')) f.unit=e.target.value;
+  if(e.target.classList.contains('pe-short')) f.short=e.target.value;
+});
+$('psList').addEventListener('change', e=>{
+  const row=e.target.closest('.pe'); if(row && e.target.classList.contains('pe-cat')) ps[ps.tab][+row.dataset.i].cat=e.target.value;
+});
+$('psList').addEventListener('click', e=>{
+  const row=e.target.closest('.pe'); if(!row) return; const list=ps[ps.tab], i=+row.dataset.i;
+  if(e.target.closest('.pe-x')){ list.splice(i,1); renderPs(); }
+  else if(e.target.closest('.pe-up') && i>0){ [list[i-1],list[i]]=[list[i],list[i-1]]; renderPs(); }
+  else if(e.target.closest('.pe-dn') && i<list.length-1){ [list[i+1],list[i]]=[list[i],list[i+1]]; renderPs(); }
+});
+$('psAddRow').onclick=()=>{
+  const t=ps.tab, item={ name:'', g:null, unit: t==='favs'?'1팩':t==='rest'?'1인분':'1회' };
+  if(t==='rest') item.cat='한식'; if(t==='home') item.cat='반찬'; if(t==='favs'){ item.id=pid(); item.short=''; } if(t==='custom') item.cat='직접 입력';
+  ps[t].unshift(item); renderPs();
+  const el=$('psList').querySelector('.pe-name'); if(el) el.focus();
+};
+$('psSort').onclick=()=>{ ps[ps.tab].sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko')); renderPs(); toast('가나다순으로 정렬했어요'); };
+$('psReset').onclick=()=>{
+  if(!confirm('이 목록을 처음 기본 목록으로 되돌릴까요? 고친 내용은 사라져요.')) return;
+  ps[ps.tab] = (ps.tab==='rest'?DEF_REST:DEF_HOME).map(f=>({...f})); renderPs();
 };
 $('psSave').onclick=()=>{
   const goal=Math.round(num($('psGoal').value)||0);
   if(goal<30 || goal>400){ toast('목표는 30~400g 사이로 입력해주세요'); return; }
-  protSettings.goal=goal; protSettings.favs=psFavs;
-  PROT_SET.set({ goal, favs:psFavs }, { merge:true }).then(()=>toast('저장했어요')).catch(e=>toast('저장 실패: '+(e.code||e.message)));
+  const clean=list=>list.filter(f=>(f.name||'').trim()).map(f=>({ ...f, name:f.name.trim(), g: Math.max(0, num(f.g)||0), unit:(f.unit||'').trim() }));
+  const favs=clean(ps.favs).map(f=>({ ...f, id:f.id||pid(), short:(f.short||'').trim() || (f.name.length>8?f.name.slice(0,8):f.name) }));
+  const data={ goal, favs, rest:clean(ps.rest), home:clean(ps.home), custom:clean(ps.custom) };
+  Object.assign(protSettings, data);
+  PROT_SET.set(data, { merge:true }).then(()=>toast('저장했어요')).catch(e=>toast('저장 실패: '+(e.code||e.message)));
   closeModal('protSetModal'); renderProt();
 };
 
@@ -2517,7 +2587,8 @@ function renderProtTrend(){
 /* ---------- 실시간 동기화 ---------- */
 PROT_SET.onSnapshot(doc=>{
   const d=doc.exists?doc.data():{};
-  protSettings={ goal: typeof d.goal==='number'?d.goal:150, favs: Array.isArray(d.favs)?d.favs:DEFAULT_FAVS, custom: Array.isArray(d.custom)?d.custom:[] };
+  protSettings={ goal: typeof d.goal==='number'?d.goal:150, favs: Array.isArray(d.favs)?d.favs:DEFAULT_FAVS, custom: Array.isArray(d.custom)?d.custom:[],
+                  rest: Array.isArray(d.rest)?d.rest:null, home: Array.isArray(d.home)?d.home:null };
   renderProt();
 }, showError);
 db.collection('protein').onSnapshot(snap=>{
@@ -2565,7 +2636,7 @@ function renderDayDetail(){
     wRow=`<b>${fmtW(r.weight)}kg</b> ${df!=null?`<span class="${df<0?'down':df>0?'up':'flat'}">${df<0?'▼':df>0?'▲':''}${fmtW(Math.abs(df))}</span>`:''}`; }
   else wRow='<span class="dd-none">기록 없음</span>';
   $('dayDetail').innerHTML = `<h3>${longDate(k)}</h3>
-    <div class="dd-row"><div class="dd-k">${SCALE_IC} 체중</div><div class="dd-v">${wRow}
+    <div class="dd-row"><div class="dd-k">⚖️ 체중</div><div class="dd-v">${wRow}
       ${future?'':`<div class="dd-w"><input type="text" inputmode="decimal" id="ddW" placeholder="${r?fmtW(r.weight):'체중'}"><span>kg</span>
         <button class="mini" id="ddWSave">${r?'수정':'저장'}</button>${r?'<button class="mini dd-del" id="ddWDel">삭제</button>':''}</div>`}</div></div>
     <div class="dd-row"><div class="dd-k">🏋️ 운동</div><div class="dd-v">${ws.length ? ws.map(w=>{ const res=w.result||{};
