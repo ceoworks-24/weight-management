@@ -533,6 +533,28 @@
   .pe button:disabled{opacity:.3}
   .pe-x{color:var(--up) !important}
   .ps-tools{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .pform{margin-top:12px}
+  .pf-meals{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+  .pf-meal{border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:7px 0;font-size:13px;font-weight:700;color:var(--sub);font-family:inherit}
+  .pf-meal.on{border-color:#e8890c;background:#fff6e8;color:#a8600a}
+  .pf-row{display:flex;gap:6px;margin-top:7px}
+  .pf-name{flex:1;min-width:0;height:44px;border:1.5px solid var(--line);border-radius:10px;padding:0 10px;font-size:15px;font-family:inherit;outline:none}
+  .pf-gw{position:relative;flex:0 0 76px}
+  .pf-g{width:100%;height:44px;border:1.5px solid var(--line);border-radius:10px;padding:0 22px 0 8px;font-size:16px;font-weight:800;text-align:right;font-family:inherit;outline:none}
+  .pf-gw span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--sub)}
+  .pf-name:focus,.pf-g:focus{border-color:#e8890c}
+  .pf-add{flex:0 0 auto;height:44px;padding:0 14px;font-size:15px;background:#e8890c}
+  .pit-list{margin-top:10px;border-top:1px solid var(--line)}
+  .pit{display:flex;align-items:center;gap:6px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .pit-m{flex:0 0 auto;font-size:12px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--bg);color:#4a5550}
+  .pm-breakfast{background:#eef3fb;color:#2b63c4} .pm-lunch{background:#e3f5ed;color:#0f7f58} .pm-dinner{background:#f3e8fd;color:#7a3fc4} .pm-snack{background:#fff3df;color:#a8600a}
+  .pit-dash{color:#c3cbc6;font-size:12px}
+  .pit-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pit .pit-x{margin-left:auto}
+  .pit-g{font-weight:800;min-width:0}
+  #pFavs:empty{display:none}
+  #pFavs{margin-top:10px}
+  #pFavs::before{content:'빠른 추가';display:block;width:100%;font-size:11.5px;color:var(--sub);font-weight:700;margin-bottom:-2px}
 </style>
 </head>
 <body>
@@ -586,8 +608,10 @@
         <div class="pmeals" id="pMeals"></div>
       </div>
     </div>
-    <div class="pchips" id="pFavs"></div>
+    <div id="pForm"></div>
+    <datalist id="pfNames"></datalist>
     <div id="pItems"></div>
+    <div class="pchips" id="pFavs"></div>
   </section>
 
   <div id="sessionArea"></div>
@@ -2358,7 +2382,7 @@ const DEF_REST = FOODS_REST.map(([name,g,unit,cat])=>({ name,g,unit,cat })).sort
 const DEF_HOME = FOODS_HOME.map(([name,g,unit,cat])=>({ name,g,unit,cat })).sort(koSort);
 const DEFAULT_FAVS = [ { id:'fav1', name:'득근파티 청양렌치', short:'청양렌치', g:24, unit:'1팩' },
                        { id:'fav2', name:'득근파티 블랙페퍼', short:'블랙페퍼', g:24, unit:'1팩' } ];
-const MEALS = [ ['lunch','점심'], ['dinner','저녁'], ['snack','간식'] ];
+const MEALS = [ ['breakfast','아침'], ['lunch','점심'], ['dinner','저녁'], ['snack','간식'] ];
 const MEAL_NAME = Object.fromEntries(MEALS);
 const PROT_SET = db.collection('settings').doc('protein');
 let protSettings = { goal:150, favs:DEFAULT_FAVS, custom:[], rest:null, home:null };
@@ -2382,9 +2406,9 @@ function protItems(k){ return protDays[k] || []; }
 function itemG(it){ return (num(it.g)||0) * (num(it.qty)||1); }
 function protTotal(k){ return Math.round(protItems(k).reduce((a,it)=>a+itemG(it),0)); }
 function defaultMeal(k){
-  if(k!==todayKey()) return 'dinner';
-  const h=new Date().getHours();
-  return h<16 ? 'lunch' : h<21 ? 'dinner' : 'snack';
+  if(k!==todayKey()) return 'lunch';
+  const d=new Date(), h=d.getHours()+d.getMinutes()/60;
+  return h<10.5 ? 'breakfast' : h<16 ? 'lunch' : h<21 ? 'dinner' : 'snack';
 }
 function saveProtDay(k, items){
   protDays[k]=items; renderProt();
@@ -2392,22 +2416,60 @@ function saveProtDay(k, items){
 }
 function addProt(k, food, meal){
   const items=protItems(k).concat([{ id:pid(), name:food.name, g:num(food.g)||0, unit:food.unit||'', qty:1, meal: meal||defaultMeal(k) }]);
+  document.querySelectorAll('.pform').forEach(f=>{ if(f.dataset.k===k){ f.querySelector('.pf-name').value=''; f.querySelector('.pf-g').value=''; } });
   saveProtDay(k, items);
-  toast(`${food.short||food.name} +${fmtG(food.g)}g (${MEAL_NAME[meal||defaultMeal(k)]})`);
+  toast(`${MEAL_NAME[meal||defaultMeal(k)]} · ${food.short||food.name} +${fmtG(food.g)}g`);
 }
 const QTY_STEPS=[0.5,1,1.5,2,3];
 function protItemsHtml(k, editable=true){
-  const items=protItems(k);
+  const order=Object.fromEntries(MEALS.map(([m],i)=>[m,i]));
+  const items=protItems(k).map((it,i)=>({ it, i })).sort((a,b)=>(order[a.it.meal]??9)-(order[b.it.meal]??9) || a.i-b.i).map(x=>x.it);
   if(!items.length) return '<div class="pit-empty">아직 기록이 없어요</div>';
-  return MEALS.map(([m,label])=>{
-    const l=items.filter(it=>(it.meal||'snack')===m); if(!l.length) return '';
-    const sum=Math.round(l.reduce((a,it)=>a+itemG(it),0));
-    return `<div class="pit-meal"><div class="pit-h"><b>${label}</b><span>${sum}g</span></div>
-      ${l.map(it=>`<div class="pit" data-k="${k}" data-id="${it.id}"><span class="pit-n">${esc(it.name)}</span>
-        ${editable?`<button class="pit-qty" title="눌러서 양 바꾸기">${esc(qtyText(it))}</button>`:`<small>${esc(qtyText(it))}</small>`}
-        <span class="pit-g">${Math.round(itemG(it))}g</span>${editable?'<button class="pit-x" title="삭제">×</button>':''}</div>`).join('')}</div>`;
-  }).join('');
+  return '<div class="pit-list">'+items.map(it=>`<div class="pit" data-k="${k}" data-id="${it.id}">
+      <span class="pit-m pm-${it.meal||'snack'}">${MEAL_NAME[it.meal]||'간식'}</span><span class="pit-dash">ㅡ</span>
+      <span class="pit-n">${esc(it.name)}</span><span class="pit-dash">ㅡ</span>
+      <span class="pit-g">${fmtG(itemG(it))}g</span>${editable?'<button class="pit-x" title="삭제">×</button>':''}</div>`).join('')+'</div>';
 }
+/* 입력 폼: 끼니 선택 + 음식 이름 + g */
+function protFormHtml(k){
+  const m=defaultMeal(k);
+  return `<div class="pform" data-k="${k}" data-meal="${m}">
+    <div class="pf-meals">${MEALS.map(([v,l])=>`<button class="pf-meal ${v===m?'on':''}" data-m="${v}">${l}</button>`).join('')}</div>
+    <div class="pf-row">
+      <input class="pf-name" list="pfNames" placeholder="음식 이름" maxlength="30" autocomplete="off">
+      <div class="pf-gw"><input class="pf-g" inputmode="decimal" placeholder="0" autocomplete="off"><span>g</span></div>
+      <button class="btn pf-add">추가</button>
+    </div></div>`;
+}
+// 예전에 먹은 음식 이름 → 마지막으로 입력한 g (이름 자동완성 + g 자동 채움)
+function pastFoods(){
+  const map=new Map();
+  Object.keys(protDays).sort().forEach(k=>protDays[k].forEach(it=>{ if(it.name) map.set(it.name, num(it.g)||0); }));
+  return map;
+}
+function renderPfNames(){
+  const dl=$('pfNames'); if(!dl) return;
+  dl.innerHTML=[...pastFoods().keys()].sort((a,b)=>a.localeCompare(b,'ko')).map(n=>`<option value="${esc(n)}">`).join('');
+}
+function submitPform(form){
+  const k=form.dataset.k, meal=form.dataset.meal, name=form.querySelector('.pf-name').value.trim(), g=num(form.querySelector('.pf-g').value);
+  if(!name){ toast('뭐 먹었는지 입력해주세요'); form.querySelector('.pf-name').focus(); return; }
+  if(g==null || g<0 || g>300){ toast('단백질 g을 입력해주세요'); form.querySelector('.pf-g').focus(); return; }
+  addProt(k, { name, g, unit:'' }, meal);
+}
+document.addEventListener('click', e=>{
+  const mb=e.target.closest('.pf-meal');
+  if(mb){ const f=mb.closest('.pform'); f.dataset.meal=mb.dataset.m; f.querySelectorAll('.pf-meal').forEach(b=>b.classList.toggle('on', b===mb)); return; }
+  const ab=e.target.closest('.pf-add'); if(ab) submitPform(ab.closest('.pform'));
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && e.target.closest && e.target.closest('.pform')){ e.preventDefault(); submitPform(e.target.closest('.pform')); }
+});
+document.addEventListener('input', e=>{
+  if(!e.target.classList || !e.target.classList.contains('pf-name')) return;
+  const g=pastFoods().get(e.target.value.trim()), gi=e.target.closest('.pform').querySelector('.pf-g');
+  if(g!=null && !gi.value) gi.value=fmtG(g);
+});
 // 남은 양 채우기 안내 — 현실적인 간식·식품으로 1~2가지 조합을 제안
 //  가공육(소시지·육포·햄)은 나트륨·인산염 첨가물 때문에 제외 (신장 부담 고려)
 const FILL_POOL = [
@@ -2452,10 +2514,15 @@ function renderProt(){
   $('pTotal').style.color=PROT_COLOR[pcl];
   $('pLeft').innerHTML = left>0 ? `<em>${left}g</em> 남았어요` : '<em>목표 달성!</em> 🎉';
   const by=m=>Math.round(protItems(k).filter(it=>(it.meal||'snack')===m).reduce((a,it)=>a+itemG(it),0));
-  $('pMeals').innerHTML = MEALS.map(([m,l])=>`${l} <b>${by(m)}g</b>`).join(' · ') + (left>0 && protSettings.favs.length ? `<br>${protFillTip(left)}` : '');
-  $('pFavs').innerHTML = protSettings.favs.map(f=>`<button class="pchip pfav" data-id="${f.id}">🍗 ${esc(f.short||f.name)} <small>+${fmtG(f.g)}g</small></button>`).join('')
-    + `<button class="pchip g p-add" data-k="${k}">+ 음식 추가</button>`;
+  const mealTxt = MEALS.filter(([m])=>by(m)>0).map(([m,l])=>`${l} <b>${by(m)}g</b>`).join(' · ');
+  $('pMeals').innerHTML = (mealTxt || '아직 기록이 없어요') + (left>0 ? `<br>${protFillTip(left)}` : '');
+  const pf=$('pForm');                                   // 입력 중이면 폼은 그대로 두고 날짜만 맞춤
+  if(!pf.firstElementChild || pf.firstElementChild.dataset.k!==k) pf.innerHTML=protFormHtml(k);
+  $('pFavs').innerHTML = protSettings.favs.map(f=>`<button class="pchip pfav" data-id="${f.id}">🍗 ${esc(f.short||f.name)} <small>+${fmtG(f.g)}g</small></button>`).join('');
   $('pItems').innerHTML = protItems(k).length ? protItemsHtml(k) : '';
+  // 방금 추가한 항목이면 입력칸 비우기
+  if(pf._clear){ pf.querySelector('.pf-name').value=''; pf.querySelector('.pf-g').value=''; pf._clear=false; }
+  renderPfNames();
   if(window.renderUCal) renderUCal();
   renderProtTrend();
 }
@@ -2468,9 +2535,7 @@ document.addEventListener('click', e=>{
   const pit=e.target.closest('.pit'); if(!pit) return;
   const k=pit.dataset.k, id=pit.dataset.id, items=protItems(k).map(x=>({...x}));
   const it=items.find(x=>x.id===id); if(!it) return;
-  if(e.target.closest('.pit-qty')){
-    const i=QTY_STEPS.indexOf(num(it.qty)||1); it.qty=QTY_STEPS[(i+1)%QTY_STEPS.length]; saveProtDay(k, items);
-  } else if(e.target.closest('.pit-x')){
+  if(e.target.closest('.pit-x')){
     saveProtDay(k, items.filter(x=>x.id!==id)); toast(`${it.name} 삭제했어요`);
   }
 });
@@ -2532,8 +2597,8 @@ $('fdAdd').onclick=()=>{
 };
 
 /* ---------- 단백질 설정: 목표 + 메뉴 편집 (이름·단백질·단위·분류·순서) ---------- */
-const PS_TABS = [ ['favs','단골'], ['rest','식당 메뉴'], ['home','집밥·반찬'], ['custom','직접 입력'] ];
-const PS_DESC = { favs:'오늘 화면의 빠른 버튼이에요. 버튼 이름은 짧게 보여줄 이름이에요',
+const PS_TABS = [ ['favs','단골'] ];   // 입력 방식이 '직접 입력'으로 바뀌어 메뉴 목록 편집은 사용하지 않음
+const PS_DESC = { favs:'단골 음식 — 오늘 화면 아래쪽의 빠른 추가 버튼이에요. 버튼 이름은 짧게 보여줄 이름이에요',
                   rest:'점심(식당 메뉴) 목록이에요', home:'저녁(집밥·반찬) 목록이에요', custom:'음식 추가에서 직접 입력한 음식이에요' };
 let ps={ tab:'favs' };
 function openProtSet(){
@@ -2543,6 +2608,7 @@ function openProtSet(){
   renderPs(); openModal('protSetModal');
 }
 function renderPs(){
+  $('psTabs').style.display='none';
   $('psTabs').innerHTML = PS_TABS.map(([v,l])=>`<button data-t="${v}" class="${ps.tab===v?'on':''}">${l}</button>`).join('');
   $('psDesc').textContent = PS_DESC[ps.tab];
   $('psReset').style.display = (ps.tab==='rest'||ps.tab==='home') ? '' : 'none';
@@ -2674,7 +2740,7 @@ function renderDayDetail(){
     <div class="dd-row"><div class="dd-k">👟 러닝</div><div class="dd-v">${future?'<span class="dd-none">-</span>':`<button class="run-btn ${run?'on':''}" id="ddRun">${run?'👟 했어요 ✓ (누르면 취소)':'👟 러닝했어요'}</button>`}</div></div>
     <div class="dd-row"><div class="dd-k">🍗 단백질</div><div class="dd-v"><b>${pt}g</b> <span class="dd-none">/ ${goal}g</span>
       ${pt>=goal?'<span class="tag k-up" style="margin-left:4px">✓ 목표 달성</span>':''}
-      <div class="dd-p">${protItemsHtml(k)}</div>${future?'':`<button class="pchip g p-add" data-k="${k}">+ 음식 추가</button>`}</div></div>`;
+      <div class="dd-p">${protItemsHtml(k)}</div>${future?'':protFormHtml(k)}</div></div>`;
 }
 $('uCal').addEventListener('click', e=>{
   const c=e.target.closest('.day[data-k]'); if(!c || c.classList.contains('future')) return;
