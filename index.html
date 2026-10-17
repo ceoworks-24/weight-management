@@ -343,7 +343,7 @@
   .cmp b{font-size:11.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
   .cmp .now{background:#f1faf5}
   .rp-rt{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
-  .rp-rt > b{flex:0 0 76px;font-size:15px}
+  .rp-rt > b{flex:1 1 auto;font-size:15px;white-space:nowrap}
   .rp-meta{flex:1;font-size:12.5px;color:var(--sub);text-align:right}
   .rp-warn{color:#c42b2b;font-weight:700}
   .rp-rt.fixed{cursor:default;border-bottom:none;padding:16px 0 8px}
@@ -351,7 +351,8 @@
   .tl{display:flex;flex-wrap:wrap;align-items:center;gap:3px 4px;margin-top:4px;font-variant-numeric:tabular-nums}
   .tl-c{font-size:12px;color:var(--sub);background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px 6px;white-space:nowrap}
   .tl-c.now{color:var(--text);font-weight:800;border-color:#cfd8d3}
-  .tl-a{font-style:normal;font-size:9.5px;font-weight:800;color:#a0a8a3}
+  .tl-a{font-style:normal;font-size:9.5px;font-weight:800;color:#a0a8a3;margin-right:3px}
+  .tl-s{font-size:12px;color:#b5bdb8}
   .tl-a.up{color:#15944f} .tl-a.down{color:#dc2f2f}
   .tl-none{font-size:12px;color:#a0a8a3;margin-left:4px}
   .tl-tag{display:inline-block;font-size:10.5px;font-weight:800;color:#c42b2b;background:#fde2e2;border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:1px}
@@ -1719,7 +1720,7 @@ function renderStart(){
 }
 
 /* ---------- 점진적 과부하 리포트 ---------- */
-let reportOpen = { cat:null, part:null };     // 펼쳐 둔 항목
+let reportOpen = { cat:null, parts:new Set() };     // 펼쳐 둔 항목
 // 기록 1회의 대표 세트: 일반은 가장 무거운 무게(같으면 최다 횟수), 어시스트는 가장 적은 보조
 function topSetText(x){
   const A=x.assist, BODY = !A && loadOf(null, { name:x.name, load:null })==='body' && x.sets.every(s=>!s.w);
@@ -1772,7 +1773,7 @@ function exLine(ex, r, showPart){
     const last=i===h.length-1;
     let arrow='';
     if(i>0){ const t=trendOf(x.m, h[i-1].m); arrow=`<em class="tl-a ${t}">${t==='up'?'▲':t==='down'?'▼':'='}</em>`; }
-    return `${arrow}<span class="tl-c ${last?'now':''}">${tlText(x)}</span>`;
+    return `${i>0?'<span class="tl-s">/</span>':''}<span class="tl-c ${last?'now':''}">${arrow}${tlText(x)}</span>`;
   }).join('') + (h.length===1?'<span class="tl-none">첫 기록</span>':'');
   const tag = r.cls==='r' && r.stall ? `<span class="tl-tag">${r.stall}회째 제자리</span>` : '';
   return `<div class="lt" data-ex="${ex.id}"><i class="${r.cls}"></i><div class="lt-n"><b>${esc(ex.name)}${showPart?` <span>${partName(ex.part)}</span>`:''}${tag}</b><div class="tl">${tl}</div></div></div>`;
@@ -1802,8 +1803,9 @@ function renderReport(){
       .filter(ex=>historyOf(ex.id).length);                       // 기록 있는 종목만
     if(!exs.length) continue;
     const lastW=doneWorkouts().filter(w=>w.part===p.id).pop();
-    html+=`<div class="rp-rt fixed"><b>${partEmoji(p.id)} ${p.name}</b><span class="rp-meta">${lastW?`마지막 ${shortDate(lastW.date)}`:''}</span></div>`;
-    html+=`<div class="rp-open">${exs.map(ex=>exLine(ex, exReport(ex), false)).join('')}</div>`;
+    const open=reportOpen.parts.has(p.id);
+    html+=`<div class="rp-rt ${open?'open':''}" data-part="${p.id}"><b>${partEmoji(p.id)} ${p.name}</b><span class="rp-meta">${lastW?`마지막 ${shortDate(lastW.date)}`:''}</span><span class="chev">${open?'▾':'▸'}</span></div>`;
+    if(open) html+=`<div class="rp-open">${exs.map(ex=>exLine(ex, exReport(ex), false)).join('')}</div>`;
   }
   html+='</div>';
   $('report').innerHTML=html;
@@ -1811,8 +1813,8 @@ function renderReport(){
 $('report').addEventListener('click', e=>{
   const st=e.target.closest('.rp-stat');
   if(st){ reportOpen.cat = reportOpen.cat===st.dataset.cat ? null : st.dataset.cat; renderReport(); return; }
-  const rt=e.target.closest('.rp-rt:not(.fixed)');
-  if(rt){ reportOpen.part = reportOpen.part===rt.dataset.part ? null : rt.dataset.part; renderReport(); return; }
+  const rt=e.target.closest('.rp-rt[data-part]');
+  if(rt){ const s=reportOpen.parts; s.has(rt.dataset.part) ? s.delete(rt.dataset.part) : s.add(rt.dataset.part); renderReport(); return; }
   const lt=e.target.closest('.lt[data-ex]'); if(lt) openExDetail(lt.dataset.ex);
 }, true);
 
