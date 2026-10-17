@@ -329,7 +329,7 @@
   .rp-open{background:#f7faf8;border-radius:12px;padding:2px 12px;margin-top:10px}
   .lt{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
   .lt:last-child{border-bottom:none}
-  .lt i{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .lt i{width:11px;height:11px;border-radius:50%;flex:0 0 auto;align-self:flex-start;margin-top:4px}
   .lt i.g{background:#22b573} .lt i.y{background:#f2c230} .lt i.r{background:#e5484d} .lt i.n{background:#cdd5d0}
   .lt-n{flex:1;min-width:0}
   .lt-n b{display:block;font-size:13px;line-height:1.35;word-break:keep-all}
@@ -344,6 +344,17 @@
   .cmp .now{background:#f1faf5}
   .rp-rt{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
   .rp-rt > b{flex:0 0 76px;font-size:15px}
+  .rp-meta{flex:1;font-size:12.5px;color:var(--sub);text-align:right}
+  .rp-warn{color:#c42b2b;font-weight:700}
+  .rp-rt.fixed{cursor:default;border-bottom:none;padding:16px 0 8px}
+  .rp-rt.fixed > b{flex:1 1 auto}
+  .tl{display:flex;flex-wrap:wrap;align-items:center;gap:3px 4px;margin-top:4px;font-variant-numeric:tabular-nums}
+  .tl-c{font-size:12px;color:var(--sub);background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px 6px;white-space:nowrap}
+  .tl-c.now{color:var(--text);font-weight:800;border-color:#cfd8d3}
+  .tl-a{font-style:normal;font-size:9.5px;font-weight:800;color:#a0a8a3}
+  .tl-a.up{color:#15944f} .tl-a.down{color:#dc2f2f}
+  .tl-none{font-size:12px;color:#a0a8a3;margin-left:4px}
+  .tl-tag{display:inline-block;font-size:10.5px;font-weight:800;color:#c42b2b;background:#fde2e2;border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:1px}
   .vbars{flex:1;display:flex;gap:6px;min-width:0}
   .vb{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
   .vb-a{height:58px;width:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
@@ -1748,13 +1759,23 @@ function volBars(ws){
   });
   return `<div class="vbars">${slots.join('')}</div>`;
 }
+// 종목 한 줄: 이름 + 최근 4회 대표 세트 흐름 (예: 10×12 → 12.5×12 → 15×12 → 15×12)
+function tlText(x){
+  const t=topSetText(x);
+  return t.replace('kg×','×').replace('보조 ','보조');
+}
 function exLine(ex, r, showPart){
-  let right;
-  if(r.cls==='r' && r.stall) right = `<span class="rp-note">${r.stall}번째 <b>제자리</b></span>`;
-  else if(r.prev) right = `<div class="cmp"><div><span>지난번</span><b>${cmpText(r.prev)}</b></div><div class="now"><span>이번</span><b>${cmpText(r.cur)}</b></div></div>`;
-  else if(r.cur) right = `<span class="rp-note">첫 기록 · <b>${topSetText(r.cur)}</b></span>`;
-  else right = '<span class="rp-note">기록 없음</span>';
-  return `<div class="lt" data-ex="${ex.id}"><i class="${r.cls}"></i><div class="lt-n"><b>${esc(ex.name)}</b>${showPart?`<span>${partName(ex.part)}</span>`:''}</div>${right}</div>`;
+  const h=r.h.slice(-4);
+  let tl;
+  if(!h.length) tl='<span class="tl-none">기록 없음</span>';
+  else tl=h.map((x,i)=>{
+    const last=i===h.length-1;
+    let arrow='';
+    if(i>0){ const t=trendOf(x.m, h[i-1].m); arrow=`<em class="tl-a ${t}">${t==='up'?'▲':t==='down'?'▼':'='}</em>`; }
+    return `${arrow}<span class="tl-c ${last?'now':''}">${tlText(x)}</span>`;
+  }).join('') + (h.length===1?'<span class="tl-none">첫 기록</span>':'');
+  const tag = r.cls==='r' && r.stall ? `<span class="tl-tag">${r.stall}회째 제자리</span>` : '';
+  return `<div class="lt" data-ex="${ex.id}"><i class="${r.cls}"></i><div class="lt-n"><b>${esc(ex.name)}${showPart?` <span>${partName(ex.part)}</span>`:''}${tag}</b><div class="tl">${tl}</div></div></div>`;
 }
 function renderReport(){
   const since=addDays(todayKey(),-27);
@@ -1775,16 +1796,14 @@ function renderReport(){
   </div>`;
 
   // 루틴별: 최근 4회 수행한 총 무게(kg) 막대 + 종목별 지난번/이번 비교
-  html+='<div class="rp-sec"><div class="rp-lbl" style="margin-bottom:2px">루틴별 수행한 총 무게 · 최근 4회 (kg)</div>';
+  html+='<div class="rp-sec"><div class="rp-lbl" style="margin-bottom:2px">종목별 점진적 과부하 · 최근 4회</div>';
   for(const p of PARTS){
-    const exs=mainExercises(p.id).concat(partExercises(p.id).filter(e=>isAltEx(e) && historyOf(e.id).length));
+    const exs=mainExercises(p.id).concat(partExercises(p.id).filter(e=>isAltEx(e)))
+      .filter(ex=>historyOf(ex.id).length);                       // 기록 있는 종목만
     if(!exs.length) continue;
-    const recent=doneWorkouts().filter(w=>w.part===p.id).slice(-4);
-    const reps=exs.map(ex=>({ ex, r:exReport(ex) }));
-    const open = reportOpen.part===p.id;
-    html+=`<div class="rp-rt ${open?'open':''}" data-part="${p.id}">
-        <b>${p.name}</b>${volBars(recent)}<span class="chev">${open?'▾':'▸'}</span></div>`;
-    if(open) html+=`<div class="rp-open">${reps.map(x=>exLine(x.ex, x.r, false)).join('')}</div>`;
+    const lastW=doneWorkouts().filter(w=>w.part===p.id).pop();
+    html+=`<div class="rp-rt fixed"><b>${partEmoji(p.id)} ${p.name}</b><span class="rp-meta">${lastW?`마지막 ${shortDate(lastW.date)}`:''}</span></div>`;
+    html+=`<div class="rp-open">${exs.map(ex=>exLine(ex, exReport(ex), false)).join('')}</div>`;
   }
   html+='</div>';
   $('report').innerHTML=html;
@@ -1792,7 +1811,7 @@ function renderReport(){
 $('report').addEventListener('click', e=>{
   const st=e.target.closest('.rp-stat');
   if(st){ reportOpen.cat = reportOpen.cat===st.dataset.cat ? null : st.dataset.cat; renderReport(); return; }
-  const rt=e.target.closest('.rp-rt');
+  const rt=e.target.closest('.rp-rt:not(.fixed)');
   if(rt){ reportOpen.part = reportOpen.part===rt.dataset.part ? null : rt.dataset.part; renderReport(); return; }
   const lt=e.target.closest('.lt[data-ex]'); if(lt) openExDetail(lt.dataset.ex);
 }, true);
