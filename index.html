@@ -344,9 +344,18 @@
   .cmp .now{background:#f1faf5}
   .rp-rt{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
   .rp-rt > b{flex:0 0 76px;font-size:15px}
-  .rp-rt .spark{flex:1;height:36px;background:#eef1ef;border-radius:8px;padding:3px 6px;display:flex;align-items:center;justify-content:center}
-  .rp-rt .spark svg{width:100%;height:100%}
-  .spark-empty{font-size:11px;color:#a0a8a3}
+  .vbars{flex:1;display:flex;gap:6px;min-width:0}
+  .vb{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
+  .vb-a{height:58px;width:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+  .vb-a span{font-size:10.5px;font-weight:700;color:var(--sub);margin-bottom:2px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .vb-a i{display:block;width:100%;max-width:38px;background:#d3dbd7;border-radius:5px 5px 2px 2px}
+  .vb.now .vb-a span{color:#0f9f6e;font-weight:800}
+  .vb.now .vb-a i{background:#0f9f6e}
+  .vb.now.dn .vb-a span{color:#e5484d}
+  .vb.now.dn .vb-a i{background:#e5484d}
+  .vb.empty .vb-a i{background:none;border-bottom:2px dashed #d3dbd7;border-radius:0}
+  .vb small{font-size:10px;color:#a0a8a3;margin-top:3px;white-space:nowrap}
+  .vbars-empty{flex:1;height:40px;background:#eef1ef;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#a0a8a3}
   .rp-rt .chev{color:#a0a8a3;font-size:13px}
   .rp-sec .rp-open + .rp-rt{border-top:none}
   .mini.swap{margin-top:6px;margin-right:4px;background:#eef3fb;color:#2b63c4}
@@ -691,11 +700,6 @@
     <div id="report"></div>
   </section>
 
-  <!-- 단백질 추세 -->
-  <section class="card">
-    <h2>🍗 단백질 <small class="h2-sub" id="ptAvg"></small></h2>
-    <div id="protTrend"></div>
-  </section>
 </div><!-- /tab-workout -->
 </div>
 
@@ -1732,14 +1736,17 @@ function exReport(ex){
   const t=trendOf(cur.m, prev.m);
   return { cls: t==='up'?'g' : t==='down'?'r' : 'y', h, cur, prev };
 }
-function sparkSvg(vals){
-  if(vals.length<2) return '<span class="spark-empty">기록 부족</span>';
-  const W=100, H=30, lo=Math.min(...vals), hi=Math.max(...vals), span=hi-lo;
-  const pts=vals.map((v,i)=>[4+(W-8)*i/(vals.length-1), span ? 5+(H-10)*(1-(v-lo)/span) : H/2]);
-  const upTrend = vals[vals.length-1] >= vals[0];
-  const c = upTrend ? '#0f9f6e' : '#9aa49e', lp=pts[pts.length-1];
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${pts.map(p=>p.map(n=>n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
-    <circle cx="${lp[0].toFixed(1)}" cy="${lp[1].toFixed(1)}" r="2.6" fill="${c}"/></svg>`;
+// 루틴별 최근 4회 총 무게 막대 — 높낮이 차이가 잘 보이도록 최솟값~최댓값 사이를 크게 벌려서 그림
+function volBars(ws){
+  if(!ws.length) return '<div class="vbars-empty">기록 없음</div>';
+  const vals=ws.map(w=>Math.round(w.volume||0)), lo=Math.min(...vals), hi=Math.max(...vals);
+  const hOf=v=> hi===lo ? 26 : 8 + 32*(v-lo)/(hi-lo);         // px (막대 영역 58px 중 숫자 자리 제외)
+  const slots=[]; for(let i=0;i<4-ws.length;i++) slots.push('<div class="vb empty"><div class="vb-a"><span>&nbsp;</span><i></i></div><small>&nbsp;</small></div>');
+  ws.forEach((w,i)=>{
+    const last=i===ws.length-1, dn = last && i>0 && vals[i]<vals[i-1];
+    slots.push(`<div class="vb ${last?'now':''} ${dn?'dn':''}"><div class="vb-a"><span>${vals[i].toLocaleString()}</span><i style="height:${hOf(vals[i]).toFixed(1)}px"></i></div><small>${shortDate(w.date)}</small></div>`);
+  });
+  return `<div class="vbars">${slots.join('')}</div>`;
 }
 function exLine(ex, r, showPart){
   let right;
@@ -1767,18 +1774,16 @@ function renderReport(){
     ${reportOpen.cat && total ? `<div class="rp-open">${all.filter(x=>x.r.cls===reportOpen.cat).map(x=>exLine(x.ex, x.r, true)).join('') || `<div class="rp-note" style="padding:8px 0">${catName[reportOpen.cat]} 종목이 없어요</div>`}</div>` : ''}
   </div>`;
 
-  // 루틴별: 최근 운동 8번의 총 볼륨 추세 + 종목별 지난번/이번 비교
-  html+='<div class="rp-sec">';
+  // 루틴별: 최근 4회 수행한 총 무게(kg) 막대 + 종목별 지난번/이번 비교
+  html+='<div class="rp-sec"><div class="rp-lbl" style="margin-bottom:2px">루틴별 수행한 총 무게 · 최근 4회 (kg)</div>';
   for(const p of PARTS){
     const exs=mainExercises(p.id).concat(partExercises(p.id).filter(e=>isAltEx(e) && historyOf(e.id).length));
     if(!exs.length) continue;
-    const vols=doneWorkouts().filter(w=>w.part===p.id).slice(-8).map(w=>w.volume||0);
+    const recent=doneWorkouts().filter(w=>w.part===p.id).slice(-4);
     const reps=exs.map(ex=>({ ex, r:exReport(ex) }));
-    const comp=reps.filter(x=>x.r.cls!=='n'), g=comp.filter(x=>x.r.cls==='g').length;
-    const pill = comp.length ? `<span class="pill ${g/comp.length>=0.5?'p-up':'p-warn'}">${g}/${comp.length} 성장</span>` : '<span class="pill p-flat">기록 부족</span>';
     const open = reportOpen.part===p.id;
     html+=`<div class="rp-rt ${open?'open':''}" data-part="${p.id}">
-        <b>${p.name}</b><div class="spark">${sparkSvg(vols)}</div>${pill}<span class="chev">${open?'▾':'▸'}</span></div>`;
+        <b>${p.name}</b>${volBars(recent)}<span class="chev">${open?'▾':'▸'}</span></div>`;
     if(open) html+=`<div class="rp-open">${reps.map(x=>exLine(x.ex, x.r, false)).join('')}</div>`;
   }
   html+='</div>';
@@ -2418,7 +2423,8 @@ function addProt(k, food, meal){
   const items=protItems(k).concat([{ id:pid(), name:food.name, g:num(food.g)||0, unit:food.unit||'', qty:1, meal: meal||defaultMeal(k) }]);
   document.querySelectorAll('.pform').forEach(f=>{ if(f.dataset.k===k){ f.querySelector('.pf-name').value=''; f.querySelector('.pf-g').value=''; } });
   saveProtDay(k, items);
-  toast(`${MEAL_NAME[meal||defaultMeal(k)]} · ${food.short||food.name} +${fmtG(food.g)}g`);
+  const nm=food.short||food.name;
+  toast(`${MEAL_NAME[meal||defaultMeal(k)]} · ${nm?nm+' ':''}+${fmtG(food.g)}g`);
 }
 const QTY_STEPS=[0.5,1,1.5,2,3];
 function protItemsHtml(k, editable=true){
@@ -2427,7 +2433,7 @@ function protItemsHtml(k, editable=true){
   if(!items.length) return '<div class="pit-empty">아직 기록이 없어요</div>';
   return '<div class="pit-list">'+items.map(it=>`<div class="pit" data-k="${k}" data-id="${it.id}">
       <span class="pit-m pm-${it.meal||'snack'}">${MEAL_NAME[it.meal]||'간식'}</span><span class="pit-dash">ㅡ</span>
-      <span class="pit-n">${esc(it.name)}</span><span class="pit-dash">ㅡ</span>
+      ${it.name?`<span class="pit-n">${esc(it.name)}</span><span class="pit-dash">ㅡ</span>`:''}
       <span class="pit-g">${fmtG(itemG(it))}g</span>${editable?'<button class="pit-x" title="삭제">×</button>':''}</div>`).join('')+'</div>';
 }
 /* 입력 폼: 끼니 선택 + 음식 이름 + g */
@@ -2436,7 +2442,7 @@ function protFormHtml(k){
   return `<div class="pform" data-k="${k}" data-meal="${m}">
     <div class="pf-meals">${MEALS.map(([v,l])=>`<button class="pf-meal ${v===m?'on':''}" data-m="${v}">${l}</button>`).join('')}</div>
     <div class="pf-row">
-      <input class="pf-name" list="pfNames" placeholder="음식 이름" maxlength="30" autocomplete="off">
+      <input class="pf-name" list="pfNames" placeholder="음식 이름 (생략 가능)" maxlength="30" autocomplete="off">
       <div class="pf-gw"><input class="pf-g" inputmode="decimal" placeholder="0" autocomplete="off"><span>g</span></div>
       <button class="btn pf-add">추가</button>
     </div></div>`;
@@ -2453,8 +2459,7 @@ function renderPfNames(){
 }
 function submitPform(form){
   const k=form.dataset.k, meal=form.dataset.meal, name=form.querySelector('.pf-name').value.trim(), g=num(form.querySelector('.pf-g').value);
-  if(!name){ toast('뭐 먹었는지 입력해주세요'); form.querySelector('.pf-name').focus(); return; }
-  if(g==null || g<0 || g>300){ toast('단백질 g을 입력해주세요'); form.querySelector('.pf-g').focus(); return; }
+  if(g==null || g<=0 || g>300){ toast('단백질 g을 입력해주세요'); form.querySelector('.pf-g').focus(); return; }
   addProt(k, { name, g, unit:'' }, meal);
 }
 document.addEventListener('click', e=>{
@@ -2524,7 +2529,6 @@ function renderProt(){
   if(pf._clear){ pf.querySelector('.pf-name').value=''; pf.querySelector('.pf-g').value=''; pf._clear=false; }
   renderPfNames();
   if(window.renderUCal) renderUCal();
-  renderProtTrend();
 }
 // 항목 양 바꾸기 / 삭제 / 단골 추가 / 음식 추가 열기 (오늘 카드·기록 상세 공통)
 document.addEventListener('click', e=>{
@@ -2536,7 +2540,7 @@ document.addEventListener('click', e=>{
   const k=pit.dataset.k, id=pit.dataset.id, items=protItems(k).map(x=>({...x}));
   const it=items.find(x=>x.id===id); if(!it) return;
   if(e.target.closest('.pit-x')){
-    saveProtDay(k, items.filter(x=>x.id!==id)); toast(`${it.name} 삭제했어요`);
+    saveProtDay(k, items.filter(x=>x.id!==id)); toast(`${it.name||(fmtG(itemG(it))+'g')} 삭제했어요`);
   }
 });
 
@@ -2558,7 +2562,7 @@ function foodsOf(src){
   protSettings.favs.forEach(f=>push({ name:f.name, short:f.short, g:f.g, unit:f.unit },'단골'));
   (protSettings.custom||[]).forEach(f=>push(f,'직접 입력'));
   const since=addDays(todayKey(),-30);
-  Object.keys(protDays).sort().reverse().filter(k=>k>=since).forEach(k=>protDays[k].forEach(it=>push({ name:it.name, g:it.g, unit:it.unit },'최근')));
+  Object.keys(protDays).sort().reverse().filter(k=>k>=since).forEach(k=>protDays[k].forEach(it=>it.name && push({ name:it.name, g:it.g, unit:it.unit },'최근')));
   return out.sort(koSort);
 }
 function renderFood(){
