@@ -443,7 +443,16 @@
   .ucal .ush{font-size:11.5px;line-height:1}
   .ucal .upb{position:absolute;left:5px;right:5px;bottom:4px;height:4px;border-radius:3px;background:#ebe4d8;overflow:hidden}
   .ucal .upb i{display:block;height:100%;border-radius:3px}
-  .ucal .upb.p-r i{background:#e5484d} .ucal .upb.p-o i{background:#f08c1a} .ucal .upb.p-g i{background:#1a9d62}
+  .ucal .upb.p-r i{background:#e5484d} .ucal .upb.p-o i{background:#f08c1a} .ucal .upb.p-g i{background:#1a9d62} .ucal .upb.p-b i{background:#2f7de1}
+  .ucal .upb.p-gold i{background:linear-gradient(90deg,#c99500,#ffe69a,#e0ac00,#fff3c4,#c99500);background-size:200% 100%;animation:goldShine 1.6s linear infinite;box-shadow:0 0 4px rgba(240,190,40,.8)}
+  @keyframes goldShine{from{background-position:200% 0}to{background-position:0 0}}
+  .pring.p-gold{position:relative;background:conic-gradient(from 0deg,#c99500,#ffe69a,#e0ac00,#fff6cf,#d9a400,#ffe69a,#c99500);animation:goldGlow 1.8s ease-in-out infinite}
+  .pring.p-gold b{color:#c99500 !important;text-shadow:0 0 6px rgba(255,214,90,.8)}
+  .pring.p-gold::before,.pring.p-gold::after{content:'✦';position:absolute;color:#f5c542;font-size:15px;animation:twinkle 1.4s ease-in-out infinite;text-shadow:0 0 6px #ffe08a}
+  .pring.p-gold::before{top:-4px;right:-2px}
+  .pring.p-gold::after{bottom:0;left:-4px;font-size:11px;animation-delay:.7s}
+  @keyframes goldGlow{0%,100%{box-shadow:0 0 6px 1px rgba(245,197,66,.45)}50%{box-shadow:0 0 16px 5px rgba(245,197,66,.85)}}
+  @keyframes twinkle{0%,100%{opacity:.2;transform:scale(.6) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(45deg)}}
   .ucal .u-l1{min-height:14px;line-height:14px}
   .ucal .u-l2{min-height:15px;display:flex;align-items:center;justify-content:center;gap:1px;color:var(--primary);font-size:9.5px;font-weight:800;letter-spacing:-.5px;line-height:1;white-space:nowrap;overflow:hidden;max-width:100%}
   .ucal .u-l2 svg{flex:0 0 auto}
@@ -2418,8 +2427,12 @@ let protDays = {};                                 // { 'YYYY-MM-DD': [items] }
 
 const pid = () => Math.random().toString(36).slice(2,9);
 // 단백질 게이지 색: 목표의 50% 미만 빨강 · 100% 미만 주황 · 달성 초록
-const PROT_COLOR = { 'p-r':'#e5484d', 'p-o':'#f08c1a', 'p-g':'#1a9d62' };
-function protClass(tot, goal){ const r=tot/(goal||150); return r>=1 ? 'p-g' : r>=0.5 ? 'p-o' : 'p-r'; }
+// 단백질 5구간 (목표 135g 기준: ~49 빨강 / 50~79 주황 / 80~99 초록 / 100~134 파랑 / 135~ 황금) — 목표를 바꾸면 비율대로 같이 움직임
+const PROT_COLOR = { 'p-r':'#e5484d', 'p-o':'#f08c1a', 'p-g':'#1a9d62', 'p-b':'#2f7de1', 'p-gold':'#d9a400' };
+function protClass(tot, goal){
+  goal=goal||150; const at=g=>Math.round(goal*g/135);
+  return tot>=goal ? 'p-gold' : tot>=at(100) ? 'p-b' : tot>=at(80) ? 'p-g' : tot>=at(50) ? 'p-o' : 'p-r';
+}
 const fmtG = g => String(Math.round((num(g)||0)*10)/10);           // 6 → '6', 7.5 → '7.5'
 // 양 표시: '1팩'×3 → '3팩', '2조각'×1 → '2조각', '2조각'×2 → '2조각×2', '반 모'×1 → '반 모'
 function qtyText(it){
@@ -2536,7 +2549,8 @@ function renderProt(){
   $('protGoalTxt').textContent=`목표 ${goal}g`;
   $('pTotal').textContent=tot; $('pGoalSm').textContent=`/ ${goal}g`;
   const pcl=protClass(tot,goal);
-  $('pRing').style.background=`conic-gradient(${PROT_COLOR[pcl]} ${pct}%, #eef1ef 0)`;
+  $('pRing').style.background = pcl==='p-gold' ? '' : `conic-gradient(${PROT_COLOR[pcl]} ${pct}%, #eef1ef 0)`;
+  $('pRing').classList.toggle('p-gold', pcl==='p-gold');
   $('pTotal').style.color=PROT_COLOR[pcl];
   $('pLeft').innerHTML = left>0 ? `<em>${left}g</em> 남았어요` : '<em>목표 달성!</em> 🎉';
   const by=m=>Math.round(protItems(k).filter(it=>(it.meal||'snack')===m).reduce((a,it)=>a+itemG(it),0));
@@ -2554,7 +2568,9 @@ function renderProt(){
 // 항목 양 바꾸기 / 삭제 / 단골 추가 / 음식 추가 열기 (오늘 카드·기록 상세 공통)
 document.addEventListener('click', e=>{
   const fav=e.target.closest('.pfav');
-  if(fav){ const f=protSettings.favs.find(x=>x.id===fav.dataset.id); if(f) addProt(fav.dataset.k||todayKey(), f); return; }
+  if(fav){ const f=protSettings.favs.find(x=>x.id===fav.dataset.id); if(!f) return;
+    const k=fav.dataset.k||todayKey(), form=document.querySelector(`.pform[data-k="${k}"]`);   // 위에서 고른 아침/점심/저녁/간식으로 추가
+    addProt(k, f, form ? form.dataset.meal : undefined); return; }
   const add=e.target.closest('.p-add');
   if(add){ openFood(add.dataset.k||todayKey()); return; }
   const pit=e.target.closest('.pit'); if(!pit) return;
