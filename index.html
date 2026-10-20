@@ -2427,11 +2427,12 @@ let protDays = {};                                 // { 'YYYY-MM-DD': [items] }
 
 const pid = () => Math.random().toString(36).slice(2,9);
 // 단백질 게이지 색: 목표의 50% 미만 빨강 · 100% 미만 주황 · 달성 초록
-// 단백질 5구간 (목표 135g 기준: ~49 빨강 / 50~79 주황 / 80~99 초록 / 100~134 파랑 / 135~ 황금) — 목표를 바꾸면 비율대로 같이 움직임
-const PROT_COLOR = { 'p-r':'#e5484d', 'p-o':'#f08c1a', 'p-g':'#1a9d62', 'p-b':'#2f7de1', 'p-gold':'#d9a400' };
-function protClass(tot, goal){
-  goal=goal||150; const at=g=>Math.round(goal*g/135);
-  return tot>=goal ? 'p-gold' : tot>=at(100) ? 'p-b' : tot>=at(80) ? 'p-g' : tot>=at(50) ? 'p-o' : 'p-r';
+// 단백질 4구간 — 체중 1kg당 g 기준 (그날 체중, 없으면 그 전 최신 체중)
+//  1.2 미만 빨강 / 1.2~1.4 주황 / 1.4~1.7 초록 / 1.7 이상 황금
+const PROT_COLOR = { 'p-r':'#e5484d', 'p-o':'#f08c1a', 'p-g':'#1a9d62', 'p-gold':'#d9a400' };
+function protClass(tot, k){
+  const perKg = tot / bodyWeightOn(k||todayKey());
+  return perKg>=1.7 ? 'p-gold' : perKg>=1.4 ? 'p-g' : perKg>=1.2 ? 'p-o' : 'p-r';
 }
 const fmtG = g => String(Math.round((num(g)||0)*10)/10);           // 6 → '6', 7.5 → '7.5'
 // 양 표시: '1팩'×3 → '3팩', '2조각'×1 → '2조각', '2조각'×2 → '2조각×2', '반 모'×1 → '반 모'
@@ -2548,7 +2549,7 @@ function renderProt(){
   const k=todayKey(), goal=protSettings.goal||150, tot=protTotal(k), left=Math.max(0, goal-tot), pct=Math.min(100, tot/goal*100);
   $('protGoalTxt').textContent=`목표 ${goal}g`;
   $('pTotal').textContent=tot; $('pGoalSm').textContent=`/ ${goal}g`;
-  const pcl=protClass(tot,goal);
+  const pcl=protClass(tot,k);
   $('pRing').style.background = pcl==='p-gold' ? '' : `conic-gradient(${PROT_COLOR[pcl]} ${pct}%, #eef1ef 0)`;
   $('pRing').classList.toggle('p-gold', pcl==='p-gold');
   $('pTotal').style.color=PROT_COLOR[pcl];
@@ -2753,7 +2754,7 @@ function renderUCal(){
     if(r){ const p=prevRecord(k); const c = p ? (r.weight<p.weight?'down':r.weight>p.weight?'up':'flat') : 'flat';
       wTxt=`<span class="uw ${c}">${fmtW(r.weight)}</span>`; }
     const parts=[...new Set(ws.map(w=>PART_SHORT[w.part]||partName(w.part)))].join('·');
-    const pc3=protClass(pt,goal);
+    const pc3=protClass(pt,k);
     html+=`<div class="${cls.join(' ')}" data-k="${k}"><div class="n">${d}</div>
       <div class="u-l1">${wTxt}</div>
       <div class="u-l2">${ws.length?`${DB_SM}<span>${parts}</span>`:''}</div>
